@@ -1,4 +1,11 @@
 {
+  "name": "quan-ly-chi-tieu",
+  "version": "1.0.0",
+  "description": "Website quản lý chi tiêu cá nhân",
+  "main": "sever.js",
+  "scripts": {
+    "start": "node sever.js"
+  },
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1"
