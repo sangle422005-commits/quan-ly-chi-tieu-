@@ -592,13 +592,14 @@
 
 
 <script>
-
     // =====================================
-    // DATA
+    // API
     // =====================================
 
-    let transactions =
-        JSON.parse(localStorage.getItem("transactions")) || [];
+    const API_BASE = "/api";
+
+    let transactions = [];
+    let expenseChart = null;
 
 
     // =====================================
@@ -614,12 +615,56 @@
     // =====================================
 
     function formatMoney(number) {
-
         return new Intl.NumberFormat("vi-VN", {
             style: "currency",
             currency: "VND"
         }).format(number);
+    }
 
+
+    // =====================================
+    // HTML ESCAPE
+    // =====================================
+
+    function escapeHTML(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    // =====================================
+    // LOAD TRANSACTIONS FROM SERVER
+    // =====================================
+
+    async function loadTransactions() {
+        try {
+            const response = await fetch(`${API_BASE}/transactions`);
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Không thể tải dữ liệu");
+            }
+
+            transactions = result.data || [];
+
+            renderTransactions();
+            updateDashboard();
+            updateChart();
+
+        } catch (error) {
+            console.error(error);
+
+            document.getElementById("transactionList").innerHTML = `
+                <div class="empty">
+                    Không thể kết nối tới server.<br>
+                    Hãy kiểm tra server.js đang chạy tại localhost:3000.
+                </div>
+            `;
+        }
     }
 
 
@@ -627,8 +672,7 @@
     // ADD TRANSACTION
     // =====================================
 
-    function addTransaction() {
-
+    async function addTransaction() {
         const type =
             document.querySelector(
                 'input[name="type"]:checked'
@@ -647,112 +691,103 @@
             document.getElementById("note").value.trim();
 
 
-        // CHECK
-
         if (!amount || amount <= 0) {
-
             alert("Vui lòng nhập số tiền hợp lệ!");
-
             return;
         }
-
 
         if (!date) {
-
             alert("Vui lòng chọn ngày!");
-
             return;
         }
 
 
-        // CREATE OBJECT
+        try {
+            const response = await fetch(
+                `${API_BASE}/transactions`,
+                {
+                    method: "POST",
 
-        const transaction = {
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
 
-            id: Date.now(),
-
-            type: type,
-
-            amount: amount,
-
-            category: category,
-
-            date: date,
-
-            note: note || "Không có ghi chú"
-
-        };
-
-
-        // ADD
-
-        transactions.push(transaction);
-
-
-        // SAVE
-
-        saveData();
-
-
-        // RESET
-
-        document.getElementById("amount").value = "";
-
-        document.getElementById("note").value = "";
-
-
-        // UPDATE
-
-        renderTransactions();
-
-        updateDashboard();
-
-        updateChart();
-
-    }
-
-
-    // =====================================
-    // SAVE DATA
-    // =====================================
-
-    function saveData() {
-
-        localStorage.setItem(
-            "transactions",
-            JSON.stringify(transactions)
-        );
-
-    }
-
-
-    // =====================================
-    // DELETE
-    // =====================================
-
-    function deleteTransaction(id) {
-
-        if (!confirm("Bạn có chắc muốn xóa giao dịch này?")) {
-
-            return;
-
-        }
-
-
-        transactions =
-            transactions.filter(
-                transaction => transaction.id !== id
+                    body: JSON.stringify({
+                        type,
+                        amount,
+                        category,
+                        date,
+                        note
+                    })
+                }
             );
 
+            const result = await response.json();
 
-        saveData();
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || "Không thể thêm giao dịch"
+                );
+            }
 
-        renderTransactions();
 
-        updateDashboard();
+            // Xóa dữ liệu nhập
+            document.getElementById("amount").value = "";
+            document.getElementById("note").value = "";
 
-        updateChart();
 
+            // Tải lại dữ liệu từ server
+            await loadTransactions();
+
+        } catch (error) {
+            console.error(error);
+
+            alert(
+                "Không thể thêm giao dịch: " +
+                error.message
+            );
+        }
+    }
+
+
+    // =====================================
+    // DELETE TRANSACTION
+    // =====================================
+
+    async function deleteTransaction(id) {
+
+        if (!confirm("Bạn có chắc muốn xóa giao dịch này?")) {
+            return;
+        }
+
+
+        try {
+            const response = await fetch(
+                `${API_BASE}/transactions/${encodeURIComponent(id)}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || "Không thể xóa giao dịch"
+                );
+            }
+
+
+            await loadTransactions();
+
+        } catch (error) {
+            console.error(error);
+
+            alert(
+                "Không thể xóa giao dịch: " +
+                error.message
+            );
+        }
     }
 
 
@@ -763,27 +798,17 @@
     function getIcon(category) {
 
         const icons = {
-
             "Ăn uống": "🍜",
-
             "Đi lại": "🛵",
-
             "Mua sắm": "🛒",
-
             "Học tập": "📚",
-
             "Giải trí": "🎮",
-
             "Hóa đơn": "🧾",
-
             "Lương": "💰",
-
             "Khác": "📦"
-
         };
 
         return icons[category] || "📦";
-
     }
 
 
@@ -796,54 +821,47 @@
         const list =
             document.getElementById("transactionList");
 
-
         const filterDate =
             document.getElementById("filterDate").value;
-
 
         const filterCategory =
             document.getElementById("filterCategory").value;
 
 
-        let filtered =
-            [...transactions];
+        let filtered = [...transactions];
 
-
-        // FILTER DATE
 
         if (filterDate) {
-
-            filtered =
-                filtered.filter(
-                    transaction =>
-                        transaction.date === filterDate
-                );
-
+            filtered = filtered.filter(
+                transaction =>
+                    transaction.date === filterDate
+            );
         }
 
-
-        // FILTER CATEGORY
 
         if (filterCategory !== "all") {
-
-            filtered =
-                filtered.filter(
-                    transaction =>
-                        transaction.category === filterCategory
-                );
-
+            filtered = filtered.filter(
+                transaction =>
+                    transaction.category === filterCategory
+            );
         }
 
 
-        // SORT NEWEST
+        filtered.sort((a, b) => {
 
-        filtered.sort(
-            (a, b) =>
-                new Date(b.date) - new Date(a.date)
-        );
+            const dateCompare =
+                new Date(b.date) - new Date(a.date);
 
+            if (dateCompare !== 0) {
+                return dateCompare;
+            }
 
-        // EMPTY
+            return (
+                new Date(b.createdAt || 0) -
+                new Date(a.createdAt || 0)
+            );
+        });
+
 
         if (filtered.length === 0) {
 
@@ -854,78 +872,71 @@
             `;
 
             return;
-
         }
 
 
-        // RENDER
+        list.innerHTML = filtered.map(transaction => {
 
-        list.innerHTML =
-            filtered.map(transaction => {
+            const sign =
+                transaction.type === "income"
+                    ? "+"
+                    : "-";
 
-                const sign =
-                    transaction.type === "income"
-                        ? "+"
-                        : "-";
+            const amountClass =
+                transaction.type;
 
+            return `
+                <div class="transaction">
 
-                const amountClass =
-                    transaction.type;
+                    <div class="transaction-left">
 
-
-                return `
-
-                    <div class="transaction">
-
-                        <div class="transaction-left">
-
-                            <div class="icon">
-                                ${getIcon(transaction.category)}
-                            </div>
-
-                            <div class="transaction-info">
-
-                                <h3>
-                                    ${transaction.category}
-                                </h3>
-
-                                <p>
-                                    ${transaction.note}
-                                </p>
-
-                                <p>
-                                    ${formatDate(transaction.date)}
-                                </p>
-
-                            </div>
-
+                        <div class="icon">
+                            ${getIcon(
+                                escapeHTML(transaction.category)
+                            )}
                         </div>
 
+                        <div class="transaction-info">
 
-                        <div class="transaction-right">
+                            <h3>
+                                ${escapeHTML(transaction.category)}
+                            </h3>
 
-                            <div
-                                class="amount ${amountClass}"
-                            >
-                                ${sign}
-                                ${formatMoney(transaction.amount)}
-                            </div>
+                            <p>
+                                ${escapeHTML(transaction.note)}
+                            </p>
 
-                            <button
-                                class="delete-btn"
-                                onclick="deleteTransaction(${transaction.id})"
-                            >
-                                Xóa
-                            </button>
+                            <p>
+                                ${formatDate(transaction.date)}
+                            </p>
 
                         </div>
 
                     </div>
 
-                `;
 
-            }).join("");
+                    <div class="transaction-right">
 
+                        <div class="amount ${amountClass}">
+                            ${sign}
+                            ${formatMoney(
+                                Number(transaction.amount)
+                            )}
+                        </div>
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteTransaction('${escapeHTML(transaction.id)}')"
+                        >
+                            Xóa
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
     }
 
 
@@ -935,11 +946,14 @@
 
     function formatDate(date) {
 
+        if (!date) {
+            return "";
+        }
+
         const d =
             new Date(date + "T00:00:00");
 
         return d.toLocaleDateString("vi-VN");
-
     }
 
 
@@ -947,46 +961,62 @@
     // DASHBOARD
     // =====================================
 
-    function updateDashboard() {
+    async function updateDashboard() {
 
-        let income = 0;
+        try {
+            const response =
+                await fetch(`${API_BASE}/statistics`);
 
-        let expense = 0;
+            const result =
+                await response.json();
 
-
-        transactions.forEach(transaction => {
-
-            if (transaction.type === "income") {
-
-                income += transaction.amount;
-
-            } else {
-
-                expense += transaction.amount;
-
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || "Không thể tải thống kê"
+                );
             }
 
-        });
+            const data = result.data;
 
+            document.getElementById("totalIncome")
+                .textContent =
+                formatMoney(data.totalIncome);
 
-        const balance =
-            income - expense;
+            document.getElementById("totalExpense")
+                .textContent =
+                formatMoney(data.totalExpense);
 
+            document.getElementById("balance")
+                .textContent =
+                formatMoney(data.balance);
 
-        document.getElementById("totalIncome")
-            .textContent =
-            formatMoney(income);
+        } catch (error) {
 
+            console.error(error);
 
-        document.getElementById("totalExpense")
-            .textContent =
-            formatMoney(expense);
+            // Fallback từ dữ liệu đã tải
+            let income = 0;
+            let expense = 0;
 
+            transactions.forEach(transaction => {
 
-        document.getElementById("balance")
-            .textContent =
-            formatMoney(balance);
+                if (transaction.type === "income") {
+                    income += Number(transaction.amount);
+                } else {
+                    expense += Number(transaction.amount);
+                }
 
+            });
+
+            document.getElementById("totalIncome")
+                .textContent = formatMoney(income);
+
+            document.getElementById("totalExpense")
+                .textContent = formatMoney(expense);
+
+            document.getElementById("balance")
+                .textContent = formatMoney(income - expense);
+        }
     }
 
 
@@ -1001,7 +1031,6 @@
         document.getElementById("filterCategory").value = "all";
 
         renderTransactions();
-
     }
 
 
@@ -1009,109 +1038,114 @@
     // CHART
     // =====================================
 
-    let expenseChart;
+    async function updateChart() {
 
+        try {
 
-    function updateChart() {
+            const response =
+                await fetch(`${API_BASE}/statistics`);
 
-        const categories = {
+            const result =
+                await response.json();
 
-            "Ăn uống": 0,
-
-            "Đi lại": 0,
-
-            "Mua sắm": 0,
-
-            "Học tập": 0,
-
-            "Giải trí": 0,
-
-            "Hóa đơn": 0,
-
-            "Khác": 0
-
-        };
-
-
-        transactions.forEach(transaction => {
-
-            if (
-                transaction.type === "expense"
-                &&
-                categories.hasOwnProperty(
-                    transaction.category
-                )
-            ) {
-
-                categories[
-                    transaction.category
-                ] += transaction.amount;
-
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || "Không thể tải biểu đồ"
+                );
             }
 
-        });
+
+            const categories = {
+                "Ăn uống": 0,
+                "Đi lại": 0,
+                "Mua sắm": 0,
+                "Học tập": 0,
+                "Giải trí": 0,
+                "Hóa đơn": 0,
+                "Khác": 0
+            };
 
 
-        const labels =
-            Object.keys(categories);
+            Object.entries(
+                result.data.expenseByCategory || {}
+            ).forEach(([category, amount]) => {
+
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        categories,
+                        category
+                    )
+                ) {
+                    categories[category] =
+                        Number(amount);
+                }
+
+            });
 
 
-        const data =
-            Object.values(categories);
+            const labels =
+                Object.keys(categories);
+
+            const data =
+                Object.values(categories);
 
 
-        const ctx =
-            document
-                .getElementById("expenseChart")
-                .getContext("2d");
+            const ctx =
+                document
+                    .getElementById("expenseChart")
+                    .getContext("2d");
 
 
-        if (expenseChart) {
-
-            expenseChart.destroy();
-
-        }
+            if (expenseChart) {
+                expenseChart.destroy();
+            }
 
 
-        expenseChart =
-            new Chart(ctx, {
+            expenseChart =
+                new Chart(ctx, {
 
-                type: "doughnut",
+                    type: "doughnut",
 
-                data: {
+                    data: {
 
-                    labels: labels,
+                        labels,
 
-                    datasets: [{
+                        datasets: [{
 
-                        data: data,
+                            data,
 
-                        borderWidth: 1
+                            borderWidth: 1
 
-                    }]
+                        }]
 
-                },
+                    },
 
-                options: {
+                    options: {
 
-                    responsive: true,
+                        responsive: true,
 
-                    maintainAspectRatio: false,
+                        maintainAspectRatio: false,
 
-                    plugins: {
+                        plugins: {
 
-                        legend: {
+                            legend: {
 
-                            position: "bottom"
+                                position: "bottom"
+
+                            }
 
                         }
 
                     }
 
-                }
+                });
 
-            });
 
+        } catch (error) {
+
+            console.error(error);
+
+        }
     }
 
 
@@ -1119,11 +1153,7 @@
     // INITIALIZE
     // =====================================
 
-    renderTransactions();
-
-    updateDashboard();
-
-    updateChart();
+    loadTransactions();
 
 </script>
 
