@@ -32,7 +32,7 @@
         .section { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); margin-bottom: 25px; }
         .section h2 { margin-bottom: 20px; font-size: 20px; }
 
-        /* FORM */
+        /* FORMS */
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 7px; font-weight: bold; font-size: 14px; }
         input, select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; font-size: 14px; }
@@ -49,8 +49,10 @@
         .btn-add:hover { background: #1d4ed8; }
         .btn-debt { background: #f59e0b; color: white; width: 100%; }
         .btn-debt:hover { background: #d97706; }
+        .btn-savings { background: #10b981; color: white; width: 100%; }
+        .btn-savings:hover { background: #059669; }
 
-        /* TRANSACTIONS & DEBTS */
+        /* TRANSACTIONS & LISTS */
         .filter { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .transaction { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #e5e7eb; }
         .transaction:last-child { border-bottom: none; }
@@ -66,7 +68,20 @@
         .delete-btn { background: #fee2e2; color: #dc2626; padding: 7px 10px; font-size: 12px; }
         .pay-btn { background: #dcfce7; color: #16a34a; padding: 7px 10px; font-size: 12px; }
         .part-btn { background: #fef3c7; color: #b45309; padding: 7px 10px; font-size: 12px; }
-        .empty { text-align: center; color: #9ca3af; padding: 30px; }
+        .deposit-btn { background: #ecfdf5; color: #059669; padding: 7px 10px; font-size: 12px; }
+        .empty { text-align: center; color: #9ca3af; padding: 25px; }
+
+        /* PROGRESS BARS (BUDGET & SAVINGS) */
+        .progress-box { margin-bottom: 16px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fafafa; }
+        .progress-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+        .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+        .progress-bar-bg { height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden; width: 100%; }
+        .progress-bar-fill { height: 100%; transition: width 0.4s ease; border-radius: 5px; }
+
+        /* PROGRESS COLORS */
+        .fill-green { background: #16a34a; }
+        .fill-yellow { background: #eab308; }
+        .fill-red { background: #dc2626; }
 
         /* BADGES */
         .badge-due { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: bold; display: inline-block; }
@@ -90,7 +105,7 @@
 <div class="container">
     <div class="header">
         <h1>💰 Quản Lý Chi Tiêu Cá Nhân</h1>
-        <p>Theo dõi thu nhập, chi tiêu và các khoản vay nợ hằng ngày</p>
+        <p>Theo dõi thu nhập, chi tiêu, ngân sách, tiết kiệm và các khoản nợ hằng ngày</p>
     </div>
 
     <!-- DASHBOARD CHI TIÊU -->
@@ -122,7 +137,7 @@
     </div>
 
     <div class="main-grid">
-        <!-- CỘT TRÁI: FORM NHẬP LIỆU -->
+        <!-- CỘT TRÁI: FORM NHẬP LIỆU & THIẾT LẬP -->
         <div>
             <!-- FORM CHI TIÊU -->
             <div class="section">
@@ -183,6 +198,35 @@
                 <button type="button" class="btn-debt" id="btn-add-debt">+ Thêm khoản nợ</button>
             </div>
 
+            <!-- FORM THIẾT LẬP HẠN MỨC CHI TIÊU THÁNG -->
+            <div class="section" style="border: 2px solid #e0e7ff;">
+                <h2>🎯 Đặt Ngân Sách Tháng</h2>
+                <div class="form-group">
+                    <label for="budgetCategory">Danh mục cần đặt hạn mức</label>
+                    <select id="budgetCategory">
+                        <option value="Ăn uống">🍜 Ăn uống</option>
+                        <option value="Đi lại">🛵 Đi lại</option>
+                        <option value="Mua sắm">🛒 Mua sắm</option>
+                        <option value="Học tập">📚 Học tập</option>
+                        <option value="Giải trí">🎮 Giải trí</option>
+                        <option value="Hóa đơn">🧾 Hóa đơn</option>
+                        <option value="Khác">📦 Khác</option>
+                    </select>
+                </div>
+                <div class="form-group"><label for="budgetLimit">Hạn mức chi tiêu / tháng (₫)</label><input type="number" id="budgetLimit" placeholder="Ví dụ: 2000000" min="0"></div>
+                <button type="button" class="btn-add" id="btn-set-budget" style="background:#4f46e5;">Lưu hạn mức</button>
+            </div>
+
+            <!-- FORM MỤC TIÊU TIẾT KIỆM -->
+            <div class="section" style="border: 2px solid #d1fae5;">
+                <h2>🌱 Tạo Mục Tiêu Tiết Kiệm</h2>
+                <div class="form-group"><label for="savingName">Tên mục tiêu</label><input type="text" id="savingName" placeholder="Ví dụ: Mua Laptop, Quỹ dự phòng..."></div>
+                <div class="form-group"><label for="savingTarget">Số tiền mục tiêu (₫)</label><input type="number" id="savingTarget" placeholder="Ví dụ: 15000000" min="0"></div>
+                <div class="form-group"><label for="savingInitial">Đã có sẵn (₫)</label><input type="number" id="savingInitial" placeholder="Ví dụ: 1000000 (Mặc định 0)" min="0"></div>
+                <div class="form-group"><label for="savingDeadline">Hạn chót đạt được</label><input type="date" id="savingDeadline"></div>
+                <button type="button" class="btn-savings" id="btn-add-saving">+ Tạo mục tiêu tiết kiệm</button>
+            </div>
+
             <!-- CHART -->
             <div class="section">
                 <h2>📊 Thống kê chi tiêu</h2>
@@ -190,8 +234,21 @@
             </div>
         </div>
 
-        <!-- CỘT PHẢI: LỊCH SỬ -->
+        <!-- CỘT PHẢI: THEO DÕI NGÂN SÁCH, TIẾT KIỆM & LỊCH SỬ -->
         <div>
+            <!-- THEO DÕI HẠN MỨC CHI TIÊU THÁNG HIỆN TẠI -->
+            <div class="section">
+                <h2>📊 Hạn Mức Chi Tiêu Tháng Này</h2>
+                <p style="font-size: 13px; color: #6b7280; margin-bottom: 15px;">Theo dõi tiến độ chi tiêu theo từng danh mục so với ngân sách đã đặt.</p>
+                <div id="budgetList"><div class="empty">Chưa có danh mục nào được đặt hạn mức</div></div>
+            </div>
+
+            <!-- THEO DÕI MỤC TIÊU TIẾT KIỆM -->
+            <div class="section">
+                <h2>🏆 Mục Tiêu Tiết Kiệm</h2>
+                <div id="savingsList"><div class="empty">Chưa có mục tiêu tiết kiệm nào</div></div>
+            </div>
+
             <!-- LỊCH SỬ CHI TIÊU -->
             <div class="section">
                 <h2>📋 Lịch sử giao dịch</h2>
@@ -222,11 +279,11 @@
     </div>
 </div>
 
-<!-- FIREBASE SCRIPT -->
+<!-- FIREBASE DIRECT CLIENT SCRIPT -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
-        getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc 
+        getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -243,6 +300,8 @@
 
     let transactions = [];
     let debts = [];
+    let budgets = [];
+    let savings = [];
     let expenseChart = null;
 
     const today = new Date().toISOString().split("T")[0];
@@ -250,7 +309,7 @@
     document.getElementById("debtDate").value = today;
 
     const formatMoney = (num) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(num) || 0);
-    const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&#039;");
+    const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     const formatDate = (d) => {
         if (!d) return "";
         const parts = d.split("-");
@@ -279,18 +338,27 @@
         }
     }
 
+    // =====================================
+    // LOAD ALL DATA FROM FIRESTORE
+    // =====================================
     async function loadAllData() {
         try {
-            const [txSnap, debtSnap] = await Promise.all([
+            const [txSnap, debtSnap, budgetSnap, saveSnap] = await Promise.all([
                 getDocs(collection(db, "transactions")),
-                getDocs(collection(db, "debts"))
+                getDocs(collection(db, "debts")),
+                getDocs(collection(db, "budgets")),
+                getDocs(collection(db, "savings"))
             ]);
 
             transactions = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             debts = debtSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            budgets = budgetSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            savings = saveSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
             renderTransactions();
             renderDebts();
+            renderBudgets();
+            renderSavings();
             updateDashboard();
             updateChart();
         } catch (err) {
@@ -374,7 +442,7 @@
     }
 
     // =====================================
-    // ENHANCED DEBT HANDLERS
+    // DEBT HANDLERS
     // =====================================
     async function addDebt() {
         const type = document.querySelector('input[name="debtType"]:checked').value;
@@ -396,7 +464,7 @@
                 type,
                 person,
                 amount,
-                remainingAmount: amount, // For partial payments
+                remainingAmount: amount,
                 date,
                 dueDate: dueDate || null,
                 note: note || "Không có ghi chú",
@@ -416,7 +484,7 @@
     }
 
     async function payDebtFull(id) {
-        if (!confirm("Xác nhận đã thanh toán toàn bộ khoản nợ này?")) return;
+        if (!confirm("Xác nhận đã tất toán toàn bộ khoản nợ này?")) return;
         try {
             await updateDoc(doc(db, "debts", id), { 
                 status: "paid", 
@@ -520,6 +588,203 @@
     }
 
     // =====================================
+    // MONTHLY BUDGETS HANDLERS
+    // =====================================
+    async function setCategoryBudget() {
+        const category = document.getElementById("budgetCategory").value;
+        const limit = Number(document.getElementById("budgetLimit").value);
+
+        if (!limit || limit <= 0) return alert("Vui lòng nhập số tiền hạn mức hợp lệ!");
+
+        const btn = document.getElementById("btn-set-budget");
+        btn.disabled = true;
+
+        try {
+            // Using category name as ID so setting a budget overwrites the previous limit
+            await setDoc(doc(db, "budgets", category), {
+                category,
+                limit,
+                updatedAt: new Date().toISOString()
+            });
+            document.getElementById("budgetLimit").value = "";
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi lưu hạn mức: " + err.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function deleteBudget(category) {
+        if (!confirm(`Xóa hạn mức danh mục "${category}"?`)) return;
+        try {
+            await deleteDoc(doc(db, "budgets", category));
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi xóa hạn mức: " + err.message);
+        }
+    }
+
+    function renderBudgets() {
+        const list = document.getElementById("budgetList");
+        if (budgets.length === 0) {
+            list.innerHTML = `<div class="empty">Chưa có danh mục nào được đặt hạn mức</div>`;
+            return;
+        }
+
+        const currentYearMonth = today.substring(0, 7); // e.g. "2026-08"
+
+        // Calculate this month's expense per category
+        const thisMonthExpense = {};
+        transactions.forEach(t => {
+            if (t.type === "expense" && t.date && t.date.startsWith(currentYearMonth)) {
+                thisMonthExpense[t.category] = (thisMonthExpense[t.category] || 0) + Number(t.amount);
+            }
+        });
+
+        list.innerHTML = budgets.map(b => {
+            const spent = thisMonthExpense[b.category] || 0;
+            const percent = Math.min(Math.round((spent / b.limit) * 100), 100);
+            const actualPercent = Math.round((spent / b.limit) * 100);
+
+            let fillClass = "fill-green";
+            let statusText = `<span style="color:#16a34a;">Ổn định (${actualPercent}%)</span>`;
+
+            if (actualPercent >= 100) {
+                fillClass = "fill-red";
+                statusText = `<span style="color:#dc2626; font-weight:bold;">🚨 Vượt hạn mức ${actualPercent}%!</span>`;
+            } else if (actualPercent >= 80) {
+                fillClass = "fill-yellow";
+                statusText = `<span style="color:#b45309; font-weight:bold;">⚠️ Cảnh báo (${actualPercent}%)</span>`;
+            }
+
+            return `
+            <div class="progress-box">
+                <div class="progress-header">
+                    <span>${categoryIcons[b.category] || "📦"} ${escapeHTML(b.category)}</span>
+                    <span>${statusText}</span>
+                </div>
+                <div class="progress-meta">
+                    <span>Đã chi: <b>${formatMoney(spent)}</b></span>
+                    <span>Hạn mức: <b>${formatMoney(b.limit)}</b></span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill ${fillClass}" style="width: ${percent}%;"></div>
+                </div>
+                <div style="text-align: right; margin-top: 8px;">
+                    <button type="button" class="delete-btn" data-action="delete-budget" data-cat="${escapeHTML(b.category)}">Xóa hạn mức</button>
+                </div>
+            </div>
+            `;
+        }).join("");
+    }
+
+    // =====================================
+    // SAVINGS TARGET HANDLERS
+    // =====================================
+    async function addSavingsTarget() {
+        const name = document.getElementById("savingName").value.trim();
+        const targetAmount = Number(document.getElementById("savingTarget").value);
+        const currentAmount = Number(document.getElementById("savingInitial").value) || 0;
+        const deadline = document.getElementById("savingDeadline").value;
+
+        if (!name || !targetAmount || targetAmount <= 0) {
+            return alert("Vui lòng điền Tên mục tiêu và Số tiền mục tiêu hợp lệ!");
+        }
+
+        const btn = document.getElementById("btn-add-saving");
+        btn.disabled = true;
+
+        try {
+            await addDoc(collection(db, "savings"), {
+                name,
+                targetAmount,
+                currentAmount,
+                deadline: deadline || null,
+                createdAt: new Date().toISOString()
+            });
+            document.getElementById("savingName").value = "";
+            document.getElementById("savingTarget").value = "";
+            document.getElementById("savingInitial").value = "";
+            document.getElementById("savingDeadline").value = "";
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi tạo mục tiêu: " + err.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function depositToSavings(id, current, target) {
+        const input = prompt(`Nhập số tiền nạp thêm vào quỹ tiết kiệm (Hiện có: ${formatMoney(current)} / Cần đạt: ${formatMoney(target)}):`);
+        if (!input) return;
+
+        const depositAmount = Number(input);
+        if (isNaN(depositAmount) || depositAmount <= 0) return alert("Số tiền không hợp lệ!");
+
+        const newCurrent = current + depositAmount;
+
+        try {
+            await updateDoc(doc(db, "savings", id), {
+                currentAmount: newCurrent,
+                updatedAt: new Date().toISOString()
+            });
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi nạp tiền: " + err.message);
+        }
+    }
+
+    async function deleteSavingsTarget(id) {
+        if (!confirm("Bạn có chắc muốn xóa mục tiêu tiết kiệm này?")) return;
+        try {
+            await deleteDoc(doc(db, "savings", id));
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi xóa mục tiêu: " + err.message);
+        }
+    }
+
+    function renderSavings() {
+        const list = document.getElementById("savingsList");
+        if (savings.length === 0) {
+            list.innerHTML = `<div class="empty">Chưa có mục tiêu tiết kiệm nào</div>`;
+            return;
+        }
+
+        list.innerHTML = savings.map(s => {
+            const current = Number(s.currentAmount) || 0;
+            const target = Number(s.targetAmount) || 1;
+            const percent = Math.min(Math.round((current / target) * 100), 100);
+            const isCompleted = current >= target;
+            const deadlineBadge = s.deadline ? getDueDateBadge(s.deadline, isCompleted) : "";
+
+            return `
+            <div class="progress-box" style="${isCompleted ? 'border-color: #10b981; background: #f0fdf4;' : ''}">
+                <div class="progress-header">
+                    <span style="font-size: 15px;">🎯 ${escapeHTML(s.name)} ${isCompleted ? '🎉 <b style="color:#059669;">(ĐÃ ĐẠT MỤC TIÊU)</b>' : ''}</span>
+                    <span>${percent}%</span>
+                </div>
+                <div class="progress-meta">
+                    <span>Đã tích lũy: <b style="color:#059669;">${formatMoney(current)}</b></span>
+                    <span>Mục tiêu: <b>${formatMoney(target)}</b></span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill fill-green" style="width: ${percent}%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                    <div>${deadlineBadge}</div>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="deposit-btn" data-action="deposit-saving" data-id="${s.id}" data-curr="${current}" data-target="${target}">+ Nạp thêm</button>
+                        <button type="button" class="delete-btn" data-action="delete-saving" data-id="${s.id}">Xóa</button>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join("");
+    }
+
+    // =====================================
     // DASHBOARD & CHARTS
     // =====================================
     function updateDashboard() {
@@ -572,10 +837,12 @@
     }
 
     // =====================================
-    // EVENT LISTENERS
+    // EVENT LISTENERS (CSP-Safe)
     // =====================================
     document.getElementById("btn-add-tx").addEventListener("click", addTransaction);
     document.getElementById("btn-add-debt").addEventListener("click", addDebt);
+    document.getElementById("btn-set-budget").addEventListener("click", setCategoryBudget);
+    document.getElementById("btn-add-saving").addEventListener("click", addSavingsTarget);
 
     document.getElementById("filterDate").addEventListener("change", renderTransactions);
     document.getElementById("filterCategory").addEventListener("change", renderTransactions);
@@ -598,6 +865,25 @@
         if (payBtn) payDebtFull(payBtn.dataset.id);
         if (partBtn) payDebtPartial(partBtn.dataset.id, Number(partBtn.dataset.rem));
         if (delBtn) deleteDebt(delBtn.dataset.id);
+    });
+
+    document.getElementById("budgetList").addEventListener("click", (e) => {
+        const delBtn = e.target.closest("button[data-action='delete-budget']");
+        if (delBtn) deleteBudget(delBtn.dataset.cat);
+    });
+
+    document.getElementById("savingsList").addEventListener("click", (e) => {
+        const depositBtn = e.target.closest("button[data-action='deposit-saving']");
+        const delBtn = e.target.closest("button[data-action='delete-saving']");
+
+        if (depositBtn) {
+            depositToSavings(
+                depositBtn.dataset.id, 
+                Number(depositBtn.dataset.curr), 
+                Number(depositBtn.dataset.target)
+            );
+        }
+        if (delBtn) deleteSavingsTarget(delBtn.dataset.id);
     });
 
     loadAllData();
