@@ -424,5 +424,30 @@
     loadAllData();
 </script>
 
+    
+<!-- CẤU HÌNH FIREBASE ANALYTICS -->
+<script type="module">
+  // 1. Import các hàm từ CDN của Firebase thay vì dùng NPM
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+
+  // 2. Cấu hình ứng dụng của bạn
+  const firebaseConfig = {
+    apiKey: "AIzaSyBsoUBziK_6vMKyVnT58aDu0EDjUfNk5Sk",
+    authDomain: "sangles-28185.firebaseapp.com",
+    projectId: "sangles-28185",
+    storageBucket: "sangles-28185.firebasestorage.app",
+    messagingSenderId: "574466676130",
+    appId: "1:574466676130:web:1168a376216cff7f898efb",
+    measurementId: "G-LZQNBRGMFP"
+  };
+
+  // 3. Khởi tạo Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  
+  console.log("🔥 Firebase Analytics đã tích hợp thành công!");
+</script>
+    
 </body>
 </html>
