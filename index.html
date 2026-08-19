@@ -263,6 +263,28 @@
     </div>
 </div>
 
+<!-- QUICK CHIP WALLET MODAL PROMPT -->
+<div class="modal-overlay" id="walletModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>💳 Chọn Nguồn Tiền (Ví Thanh Toán)</h3>
+            <button class="modal-close" id="btnCloseWalletModal">&times;</button>
+        </div>
+        <div class="form-group">
+            <label for="quickChipWalletSelect">Chọn ví cho giao dịch nhanh này:</label>
+            <select id="quickChipWalletSelect" class="menu-dropdown" style="width:100%;">
+                <option value="cash">💵 Tiền mặt (Cash)</option>
+                <option value="bank">💳 Ngân hàng (Bank)</option>
+                <option value="ewallet">📱 Ví điện tử (Momo/Zalo)</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button type="button" style="background:#e2e8f0; color:#334155;" id="btnCancelWalletModal">Hủy</button>
+            <button type="button" class="btn-add" id="btnConfirmWalletModal">Xác Nhận & Lưu</button>
+        </div>
+    </div>
+</div>
+
 <!-- DYNAMIC DEVICE INSTALL MODAL -->
 <div class="modal-overlay" id="installModal">
     <div class="modal-box">
@@ -434,10 +456,10 @@
                     <h2>➕ Thêm giao dịch</h2>
                     
                     <div class="chips-container">
-                        <span class="chip" data-action="quick-chip" data-type="expense" data-amt="30000" data-cat="Ăn uống" data-wallet="cash" data-note="Cà phê sáng">☕ +30k Cà phê</span>
-                        <span class="chip" data-action="quick-chip" data-type="expense" data-amt="50000" data-cat="Ăn uống" data-wallet="cash" data-note="Cơm trưa">🍜 +50k Cơm trưa</span>
-                        <span class="chip" data-action="quick-chip" data-type="expense" data-amt="100000" data-cat="Đi lại" data-wallet="bank" data-note="Đổ xăng">🛵 +100k Đổ xăng</span>
-                        <span class="chip" data-action="quick-chip" data-type="expense" data-amt="200000" data-cat="Mua sắm" data-wallet="ewallet" data-note="Siêu thị">🛒 +200k Siêu thị</span>
+                        <span class="chip" data-action="quick-chip" data-type="expense" data-amt="30000" data-cat="Ăn uống" data-note="Cà phê sáng">☕ +30k Cà phê</span>
+                        <span class="chip" data-action="quick-chip" data-type="expense" data-amt="50000" data-cat="Ăn uống" data-note="Cơm trưa">🍜 +50k Cơm trưa</span>
+                        <span class="chip" data-action="quick-chip" data-type="expense" data-amt="100000" data-cat="Đi lại" data-note="Đổ xăng">🛵 +100k Đổ xăng</span>
+                        <span class="chip" data-action="quick-chip" data-type="expense" data-amt="200000" data-cat="Mua sắm" data-note="Siêu thị">🛒 +200k Siêu thị</span>
                     </div>
 
                     <div class="form-group">
@@ -886,6 +908,43 @@
         const val = parseShorthandNumber(document.getElementById("customModalInput").value);
         customModal.classList.remove("show");
         if(customModalResolve) customModalResolve(val);
+    });
+
+    // QUICK CHIP WALLET MODAL PROMPT LOGIC
+    const walletModal = document.getElementById("walletModal");
+    let pendingQuickChipData = null;
+
+    function openWalletModalForQuickChip(chipData) {
+        pendingQuickChipData = chipData;
+        // Pre-select whatever wallet is currently chosen in the main form
+        const currentMainWallet = document.getElementById("wallet").value;
+        document.getElementById("quickChipWalletSelect").value = currentMainWallet;
+        walletModal.style.display = "flex";
+        requestAnimationFrame(() => walletModal.classList.add("show"));
+    }
+
+    function closeWalletModal() {
+        walletModal.classList.remove("show");
+        setTimeout(() => { walletModal.style.display = "none"; pendingQuickChipData = null; }, 250);
+    }
+
+    document.getElementById("btnCloseWalletModal").addEventListener("click", closeWalletModal);
+    document.getElementById("btnCancelWalletModal").addEventListener("click", closeWalletModal);
+    
+    document.getElementById("btnConfirmWalletModal").addEventListener("click", () => {
+        if (pendingQuickChipData) {
+            const selectedWallet = document.getElementById("quickChipWalletSelect").value;
+            const currentAuthor = document.getElementById("author").value;
+            addTransaction({
+                type: pendingQuickChipData.type,
+                amount: Number(pendingQuickChipData.amt),
+                category: pendingQuickChipData.cat,
+                wallet: selectedWallet,
+                note: pendingQuickChipData.note,
+                author: currentAuthor
+            });
+        }
+        closeWalletModal();
     });
 
     const firebaseConfig = {
@@ -1562,11 +1621,16 @@
     document.getElementById("btn-set-budget").addEventListener("click", setCategoryBudget);
     document.getElementById("btn-add-saving").addEventListener("click", addSavingsTarget);
 
+    // Quick chips now trigger the wallet selection popup prompt instead of hardcoded wallets
     document.querySelector(".chips-container").addEventListener("click", (e) => {
         const chip = e.target.closest("span[data-action='quick-chip']");
         if (!chip) return;
-        const currentAuthor = document.getElementById("author").value;
-        addTransaction({ type: chip.dataset.type, amount: Number(chip.dataset.amt), category: chip.dataset.cat, wallet: chip.dataset.wallet, note: chip.dataset.note, author: currentAuthor });
+        openWalletModalForQuickChip({
+            type: chip.dataset.type,
+            amt: chip.dataset.amt,
+            cat: chip.dataset.cat,
+            note: chip.dataset.note
+        });
     });
 
     document.getElementById("searchKeyword").addEventListener("input", renderTransactions);
