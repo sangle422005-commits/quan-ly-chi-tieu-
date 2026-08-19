@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Chi Tiêu & Nợ</title>
 
-    <!-- Đã cập nhật link thư viện Chart.js để sửa lỗi thiếu file .map -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
     <style>
@@ -134,7 +133,7 @@
                 </div>
                 <div class="form-group"><label for="date">Ngày</label><input type="date" id="date"></div>
                 <div class="form-group"><label for="note">Ghi chú</label><input type="text" id="note" placeholder="Ví dụ: Ăn trưa..."></div>
-                <button class="btn-add" onclick="addTransaction()">+ Thêm giao dịch</button>
+                <button id="btn-add-tx" class="btn-add">+ Thêm giao dịch</button>
             </div>
 
             <!-- FORM NỢ MỚI -->
@@ -157,7 +156,7 @@
                 <div class="form-group"><label for="debtAmount">Số tiền</label><input type="number" id="debtAmount" placeholder="Ví dụ: 500000" min="0"></div>
                 <div class="form-group"><label for="debtDate">Ngày ghi nợ</label><input type="date" id="debtDate"></div>
                 <div class="form-group"><label for="debtNote">Ghi chú thêm</label><input type="text" id="debtNote" placeholder="Ví dụ: Hẹn tháng sau trả..."></div>
-                <button class="btn-debt" onclick="addDebt()">+ Thêm khoản nợ</button>
+                <button id="btn-add-debt" class="btn-debt">+ Thêm khoản nợ</button>
             </div>
 
             <!-- CHART -->
@@ -173,8 +172,8 @@
             <div class="section">
                 <h2>📋 Lịch sử giao dịch</h2>
                 <div class="filter">
-                    <input type="date" id="filterDate" onchange="renderTransactions()">
-                    <select id="filterCategory" onchange="renderTransactions()">
+                    <input type="date" id="filterDate">
+                    <select id="filterCategory">
                         <option value="all">Tất cả danh mục</option>
                         <option value="Ăn uống">🍜 Ăn uống</option>
                         <option value="Đi lại">🛵 Đi lại</option>
@@ -185,7 +184,7 @@
                         <option value="Lương">💰 Lương</option>
                         <option value="Khác">📦 Khác</option>
                     </select>
-                    <button onclick="clearFilter()" style="background:#e5e7eb;">Xóa lọc</button>
+                    <button id="btn-clear-filter" style="background:#e5e7eb;">Xóa lọc</button>
                 </div>
                 <div id="transactionList"><div class="empty">Chưa có giao dịch nào</div></div>
             </div>
@@ -205,7 +204,6 @@
     let debts = [];
     let expenseChart = null;
 
-    // Set Default Date
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("date").value = today;
     document.getElementById("debtDate").value = today;
@@ -214,17 +212,13 @@
     function escapeHTML(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
     function formatDate(date) { if (!date) return ""; return new Date(date + "T00:00:00").toLocaleDateString("vi-VN"); }
 
-    // =====================================
-    // LOAD DỮ LIỆU TỪ SERVER
-    // =====================================
+    // DATA LOADING
     async function loadAllData() {
         try {
-            // Load Transactions
             const resTx = await fetch(`${API_BASE}/transactions`);
             const txResult = await resTx.json();
             if (txResult.success) transactions = txResult.data || [];
 
-            // Load Debts
             const resDebt = await fetch(`${API_BASE}/debts`);
             const debtResult = await resDebt.json();
             if (debtResult.success) debts = debtResult.data || [];
@@ -238,9 +232,7 @@
         }
     }
 
-    // =====================================
-    // XỬ LÝ GIAO DỊCH (TRANSACTIONS)
-    // =====================================
+    // TRANSACTIONS LOGIC
     async function addTransaction() {
         const type = document.querySelector('input[name="type"]:checked').value;
         const amount = Number(document.getElementById("amount").value);
@@ -253,7 +245,8 @@
 
         try {
             await fetch(`${API_BASE}/transactions`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
+                method: "POST", 
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ type, amount, category, date, note })
             });
             document.getElementById("amount").value = "";
@@ -297,7 +290,7 @@
                 </div>
                 <div class="transaction-right">
                     <div class="amount ${t.type}">${t.type === "income" ? "+" : "-"}${formatMoney(Number(t.amount))}</div>
-                    <button class="delete-btn" onclick="deleteTransaction('${escapeHTML(t.id)}')">Xóa</button>
+                    <button class="delete-btn" data-action="delete-tx" data-id="${escapeHTML(t.id)}">Xóa</button>
                 </div>
             </div>
         `).join("");
@@ -309,9 +302,7 @@
         renderTransactions();
     }
 
-    // =====================================
-    // XỬ LÝ NỢ (DEBTS)
-    // =====================================
+    // DEBTS LOGIC
     async function addDebt() {
         const type = document.querySelector('input[name="debtType"]:checked').value;
         const person = document.getElementById("debtPerson").value.trim();
@@ -325,7 +316,8 @@
 
         try {
             await fetch(`${API_BASE}/debts`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
+                method: "POST", 
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ type, person, amount, date, note })
             });
             document.getElementById("debtPerson").value = "";
@@ -353,14 +345,14 @@
 
     function renderDebts() {
         const list = document.getElementById("debtList");
-        debts.sort((a, b) => new Date(b.date) - new Date(a.date)); // Xếp ngày mới nhất lên trên
+        debts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         if (debts.length === 0) { list.innerHTML = `<div class="empty">Chưa có khoản nợ nào</div>`; return; }
 
         list.innerHTML = debts.map(d => {
             const isPaid = d.status === "paid";
             const typeText = d.type === "borrow" ? "Đi vay" : "Cho mượn";
-            const typeBg = d.type === "borrow" ? "#dc2626" : "#16a34a"; // Đỏ: Vay | Xanh: Cho mượn
+            const typeBg = d.type === "borrow" ? "#dc2626" : "#16a34a";
             
             return `
             <div class="transaction" style="${isPaid ? 'opacity: 0.5;' : ''}">
@@ -378,8 +370,8 @@
                 <div class="transaction-right">
                     <div class="amount" style="color: #374151;">${formatMoney(Number(d.amount))}</div>
                     <div style="display: flex; gap: 5px;">
-                        ${!isPaid ? `<button class="pay-btn" onclick="payDebt('${escapeHTML(d.id)}')">Đã trả</button>` : ''}
-                        <button class="delete-btn" onclick="deleteDebt('${escapeHTML(d.id)}')">Xóa</button>
+                        ${!isPaid ? `<button class="pay-btn" data-action="pay-debt" data-id="${escapeHTML(d.id)}">Đã trả</button>` : ''}
+                        <button class="delete-btn" data-action="delete-debt" data-id="${escapeHTML(d.id)}">Xóa</button>
                     </div>
                 </div>
             </div>
@@ -387,9 +379,7 @@
         }).join("");
     }
 
-    // =====================================
-    // UPDATE DASHBOARD & CHART
-    // =====================================
+    // DASHBOARD & CHART
     async function updateDashboard() {
         try {
             const res = await fetch(`${API_BASE}/statistics`);
@@ -421,29 +411,26 @@
         } catch (error) { console.error(error); }
     }
 
-    // INITIALIZE
+    // EVENT DELEGATION & LISTENERS (CSP-Safe)
+    document.getElementById("btn-add-tx").addEventListener("click", addTransaction);
+    document.getElementById("btn-add-debt").addEventListener("click", addDebt);
+    document.getElementById("btn-clear-filter").addEventListener("click", clearFilter);
+    document.getElementById("filterDate").addEventListener("change", renderTransactions);
+    document.getElementById("filterCategory").addEventListener("change", renderTransactions);
+
+    document.getElementById("transactionList").addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-action='delete-tx']");
+        if (btn) deleteTransaction(btn.dataset.id);
+    });
+
+    document.getElementById("debtList").addEventListener("click", (e) => {
+        const payBtn = e.target.closest("button[data-action='pay-debt']");
+        const deleteBtn = e.target.closest("button[data-action='delete-debt']");
+        if (payBtn) payDebt(payBtn.dataset.id);
+        if (deleteBtn) deleteDebt(deleteBtn.dataset.id);
+    });
+
     loadAllData();
-</script>
-
-<!-- CẤU HÌNH FIREBASE ANALYTICS -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBsoUBziK_6vMKyVnT58aDu0EDjUfNk5Sk",
-    authDomain: "sangles-28185.firebaseapp.com",
-    projectId: "sangles-28185",
-    storageBucket: "sangles-28185.firebasestorage.app",
-    messagingSenderId: "574466676130",
-    appId: "1:574466676130:web:1168a376216cff7f898efb",
-    measurementId: "G-LZQNBRGMFP"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  
-  console.log("🔥 Firebase Analytics đã tích hợp thành công!");
 </script>
 
 </body>
