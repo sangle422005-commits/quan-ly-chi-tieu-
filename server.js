@@ -3,37 +3,30 @@ const cors = require("cors");
 const path = require("path");
 const { initializeApp } = require("firebase/app");
 const { 
-  getFirestore, 
-  collection, 
-  getDocs, 
-  doc, 
-  setDoc, 
-  deleteDoc, 
-  updateDoc 
+  getFirestore, collection, getDocs, doc, setDoc, deleteDoc, updateDoc 
 } = require("firebase/firestore");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Firebase Configuration
+// Your new Firebase project configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBsoUBziK_6vMKyVnT58aDu0EDjUfNk5Sk",
-  authDomain: "sangles-28185.firebaseapp.com",
-  projectId: "sangles-28185",
-  storageBucket: "sangles-28185.firebasestorage.app",
-  messagingSenderId: "574466676130",
-  appId: "1:574466676130:web:1168a376216cff7f898efb"
+  apiKey: "AIzaSyB8WvfnEI-s9hdUpMvDSulzD5_BfJtAE48",
+  authDomain: "quan-li-chi-tieu-e82b1.firebaseapp.com",
+  projectId: "quan-li-chi-tieu-e82b1",
+  storageBucket: "quan-li-chi-tieu-e82b1.firebasestorage.app",
+  messagingSenderId: "905488417584",
+  appId: "1:905488417584:web:323d109f25145ad6bc3ef5"
 };
 
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 
-// ================= API: TRANSACTIONS =================
+// ================= API TRANSACTIONS =================
 app.get("/api/transactions", async (req, res) => {
   try {
     const snap = await getDocs(collection(db, "transactions"));
@@ -74,14 +67,14 @@ app.post("/api/transactions", async (req, res) => {
 app.delete("/api/transactions/:id", async (req, res) => {
   try {
     await deleteDoc(doc(db, "transactions", req.params.id));
-    res.json({ success: true, message: "Đã xóa giao dịch thành công" });
+    res.json({ success: true, message: "Đã xóa giao dịch" });
   } catch (err) {
     console.error("Lỗi xóa giao dịch:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// ================= API: DEBTS =================
+// ================= API DEBTS =================
 app.get("/api/debts", async (req, res) => {
   try {
     const snap = await getDocs(collection(db, "debts"));
@@ -97,7 +90,7 @@ app.post("/api/debts", async (req, res) => {
   try {
     const { type, person, amount, date, note } = req.body;
     if (!type || !person || !amount || !date) {
-      return res.status(400).json({ success: false, message: "Thiếu dữ liệu nợ bắt buộc" });
+      return res.status(400).json({ success: false, message: "Thiếu dữ liệu nợ" });
     }
 
     const id = Date.now().toString();
@@ -136,14 +129,14 @@ app.put("/api/debts/:id/pay", async (req, res) => {
 app.delete("/api/debts/:id", async (req, res) => {
   try {
     await deleteDoc(doc(db, "debts", req.params.id));
-    res.json({ success: true, message: "Đã xóa khoản nợ thành công" });
+    res.json({ success: true, message: "Đã xóa khoản nợ" });
   } catch (err) {
     console.error("Lỗi xóa khoản nợ:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// ================= API: STATISTICS =================
+// ================= API STATISTICS =================
 app.get("/api/statistics", async (req, res) => {
   try {
     const snap = await getDocs(collection(db, "transactions"));
