@@ -13,7 +13,6 @@
     <meta name="apple-mobile-web-app-title" content="Chi Tiêu">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2454/2454282.png">
 
-    <!-- Preconnect for speed on slow connections -->
     <link rel="preconnect" href="https://firestore.googleapis.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
@@ -31,6 +30,7 @@
             --icon-bg: #f1f5f9;
             --box-bg: #f8fafc;
             --tab-active: #2563eb;
+            --ease-high-refresh: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         [data-theme="dark"] {
@@ -54,14 +54,20 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body { 
             background: var(--bg-body); 
             color: var(--text-main); 
             line-height: 1.5; 
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             touch-action: manipulation;
             padding-bottom: env(safe-area-inset-bottom, 20px);
-            text-rendering: optimizeSpeed;
+            text-rendering: optimizeLegibility;
+            overflow-x: hidden;
         }
 
         .container { 
@@ -83,7 +89,8 @@
             align-items: center; 
             flex-wrap: wrap; 
             gap: 14px; 
-            transform: translateZ(0);
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
         }
         .header h1 { 
             font-size: clamp(20px, 4vw, 26px); 
@@ -119,6 +126,7 @@
             align-items: center;
             gap: 5px;
             margin-left: 8px;
+            transform: translateZ(0);
         }
         .net-online { color: #86efac; }
         .net-offline { color: #fca5a5; }
@@ -135,14 +143,18 @@
             align-items: center; 
             gap: 5px; 
             min-height: 38px;
-            transform: translateZ(0);
+            transform: translate3d(0,0,0);
+            transition: transform 0.15s var(--ease-high-refresh), opacity 0.15s var(--ease-high-refresh), background-color 0.15s var(--ease-high-refresh);
+            will-change: transform, opacity;
         }
         .btn-install { background: #f59e0b; }
-        .btn-install:hover { background: #d97706; }
+        .btn-install:hover { background: #d97706; transform: translate3d(0, -1px, 0); }
         .btn-theme { background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.25); }
         .btn-export { background: #10b981; }
         .btn-print { background: #6366f1; }
         .btn-transfer { background: #ec4899; }
+        .btn-header:hover { opacity: 0.95; transform: translate3d(0, -1px, 0); }
+        .btn-header:active { transform: translate3d(0, 1px, 0); }
 
         /* DASHBOARDS */
         .dashboard, .wallets-dashboard { 
@@ -166,7 +178,13 @@
             border: 1px solid var(--card-border); 
             position: relative; 
             overflow: hidden; 
-            contain: content;
+            contain: layout style paint;
+            transform: translate3d(0, 0, 0);
+            transition: transform 0.2s var(--ease-high-refresh), box-shadow 0.2s var(--ease-high-refresh), background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .card:hover {
+            transform: translate3d(0, -2px, 0);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
         }
         .card-title { 
             font-size: 11.5px; 
@@ -203,6 +221,7 @@
             overflow-x: auto; 
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none; 
+            transform: translateZ(0);
         }
         .tab-bar::-webkit-scrollbar { display: none; }
         .tab-btn { 
@@ -218,6 +237,8 @@
             white-space: nowrap; 
             text-align: center; 
             min-height: 40px;
+            transform: translate3d(0, 0, 0);
+            transition: all 0.18s var(--ease-high-refresh);
         }
         .tab-btn.active { 
             background: var(--card-bg); 
@@ -225,6 +246,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
             border: 1px solid var(--card-border); 
             font-weight: 700; 
+            transform: scale(1.02);
         }
 
         /* MAIN GRID */
@@ -240,7 +262,8 @@
             border-radius: 16px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
             border: 1px solid var(--card-border); 
-            contain: content;
+            contain: layout style;
+            transform: translate3d(0,0,0);
         }
         .section h2 { 
             margin-bottom: 16px; 
@@ -253,8 +276,17 @@
         }
 
         /* TAB PANELS */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .tab-content { 
+            display: none; 
+            opacity: 0;
+            transform: translate3d(0, 4px, 0);
+            transition: opacity 0.2s var(--ease-high-refresh), transform 0.2s var(--ease-high-refresh);
+        }
+        .tab-content.active { 
+            display: block; 
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
 
         /* QUICK ADD CHIPS */
         .chips-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
@@ -270,8 +302,20 @@
             min-height: 32px;
             display: inline-flex;
             align-items: center;
+            transform: translate3d(0, 0, 0);
+            transition: all 0.15s var(--ease-high-refresh);
+            will-change: transform;
         }
-        .chip:hover { background: #2563eb; color: white; border-color: #2563eb; }
+        .chip:hover { 
+            background: #2563eb; 
+            color: white; 
+            border-color: #2563eb; 
+            transform: translate3d(0, -2px, 0);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        .chip:active {
+            transform: translate3d(0, 0, 0);
+        }
 
         /* FORMS */
         .form-group { margin-bottom: 12px; }
@@ -287,8 +331,12 @@
             font-size: 14px; 
             font-weight: 500; 
             min-height: 44px;
+            transition: border-color 0.15s var(--ease-high-refresh), box-shadow 0.15s var(--ease-high-refresh);
         }
-        input:focus, select:focus { border-color: #2563eb; }
+        input:focus, select:focus { 
+            border-color: #2563eb; 
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); 
+        }
         
         .radio-group { display: flex; gap: 8px; }
         .radio-option { flex: 1; }
@@ -307,11 +355,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.15s var(--ease-high-refresh);
         }
         .radio-option input:checked + label { 
             background: #2563eb; 
             color: white; 
             border-color: #2563eb; 
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); 
         }
         
         button { 
@@ -322,8 +373,17 @@
             font-size: 13.5px; 
             font-weight: 700; 
             min-height: 44px;
+            transform: translate3d(0, 0, 0);
+            transition: all 0.15s var(--ease-high-refresh);
+            will-change: transform;
         }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button:hover {
+            transform: translate3d(0, -1px, 0);
+        }
+        button:active {
+            transform: translate3d(0, 1px, 0);
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .btn-add { width: 100%; background: #2563eb; color: white; }
         .btn-add:hover { background: #1d4ed8; }
         .btn-debt { background: #f59e0b; color: white; width: 100%; }
@@ -362,6 +422,8 @@
             gap: 8px;
             content-visibility: auto;
             contain-intrinsic-size: 60px;
+            transform: translate3d(0, 0, 0);
+            transition: background-color 0.15s var(--ease-high-refresh);
         }
         .transaction:last-child { border-bottom: none; }
         .transaction-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
@@ -375,6 +437,7 @@
             background: var(--icon-bg); 
             font-size: 17px; 
             flex-shrink: 0; 
+            transform: translateZ(0);
         }
         .transaction-info { min-width: 0; flex: 1; }
         .transaction-info h3 { 
@@ -414,11 +477,19 @@
         .empty { text-align: center; color: var(--text-sub); padding: 25px; font-size: 13px; }
 
         /* PROGRESS BARS */
-        .progress-box { margin-bottom: 12px; padding: 12px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--box-bg); contain: content; }
+        .progress-box { 
+            margin-bottom: 12px; 
+            padding: 12px; 
+            border: 1px solid var(--card-border); 
+            border-radius: 12px; 
+            background: var(--box-bg); 
+            contain: layout style paint; 
+            transform: translate3d(0, 0, 0);
+        }
         .progress-header { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; margin-bottom: 5px; flex-wrap: wrap; gap: 4px; }
         .progress-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-sub); margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
-        .progress-bar-bg { height: 8px; background: var(--card-border); border-radius: 4px; overflow: hidden; width: 100%; }
-        .progress-bar-fill { height: 100%; transition: width 0.3s ease; border-radius: 4px; }
+        .progress-bar-bg { height: 8px; background: var(--card-border); border-radius: 4px; overflow: hidden; width: 100%; transform: translateZ(0); }
+        .progress-bar-fill { height: 100%; transition: width 0.35s var(--ease-high-refresh); border-radius: 4px; will-change: width; }
         .fill-green { background: #16a34a; }
         .fill-yellow { background: #eab308; }
         .fill-red { background: #dc2626; }
@@ -432,7 +503,26 @@
 
         /* TOAST */
         .toast-container { position: fixed; top: 12px; right: 12px; left: 12px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
-        .toast { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 12px 14px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 10px; width: 100%; max-width: 400px; margin: 0 auto; pointer-events: auto; border-left: 4px solid #2563eb; font-size: 12.5px; transform: translateZ(0); }
+        .toast { 
+            background: var(--card-bg); 
+            color: var(--text-main); 
+            border: 1px solid var(--card-border); 
+            padding: 12px 14px; 
+            border-radius: 10px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            width: 100%; 
+            max-width: 400px; 
+            margin: 0 auto; 
+            pointer-events: auto; 
+            border-left: 4px solid #2563eb; 
+            font-size: 12.5px; 
+            transform: translate3d(0, 0, 0); 
+            transition: transform 0.25s var(--ease-high-refresh), opacity 0.25s var(--ease-high-refresh);
+            will-change: transform, opacity;
+        }
         .toast.toast-warning { border-left-color: #f59e0b; }
         .toast.toast-danger { border-left-color: #ef4444; }
         .toast.toast-success { border-left-color: #10b981; }
@@ -451,8 +541,10 @@
             align-items: flex-end; 
             z-index: 10000; 
             padding: 0; 
+            opacity: 0;
+            transition: opacity 0.2s var(--ease-high-refresh);
         }
-        .modal-overlay.show { display: flex; }
+        .modal-overlay.show { display: flex; opacity: 1; }
         .modal-box { 
             background: var(--card-bg); 
             width: 100%; 
@@ -461,19 +553,32 @@
             border-radius: 20px 20px 0 0; 
             border: 1px solid var(--card-border); 
             box-shadow: 0 -10px 40px rgba(0,0,0,0.2); 
-            contain: content;
+            contain: layout style paint;
+            transform: translate3d(0, 100%, 0);
+            transition: transform 0.25s var(--ease-high-refresh);
+            will-change: transform;
+        }
+        .modal-overlay.show .modal-box {
+            transform: translate3d(0, 0, 0);
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
         .modal-close { background: none; border: none; font-size: 22px; color: var(--text-sub); cursor: pointer; padding: 0; min-height: 30px; }
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 
-        .chart-container { position: relative; height: 240px; }
+        .chart-container { position: relative; height: 240px; transform: translateZ(0); }
 
         /* MEDIA QUERIES */
         @media (min-width: 600px) {
             .modal-overlay { align-items: center; padding: 20px; }
-            .modal-box { border-radius: 16px; padding: 24px; }
+            .modal-box { 
+                border-radius: 16px; 
+                padding: 24px; 
+                transform: scale(0.95) translate3d(0,0,0);
+            }
+            .modal-overlay.show .modal-box {
+                transform: scale(1) translate3d(0,0,0);
+            }
             .toast-container { left: auto; width: auto; }
         }
 
@@ -869,21 +974,21 @@
         getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // NETWORK MONITORING & BATTERY SAVER
+    // NETWORK MONITORING
     const netStatusEl = document.getElementById("netStatus");
     function updateOnlineStatus() {
         if (navigator.onLine) {
             netStatusEl.innerHTML = `<span class="net-online">●</span> Online`;
         } else {
             netStatusEl.innerHTML = `<span class="net-offline">●</span> Ngoại tuyến`;
-            showToast("Mất kết nối Internet. Ứng dụng chuyển sang chế độ đệm ngoại tuyến.", "warning");
+            showToast("Mất kết nối Internet. Đang dùng bộ nhớ đệm.", "warning");
         }
     }
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-    // PWA INSTALLATION ENGINE
+    // PWA INSTALLATION
     let deferredPrompt = null;
     const installBtn = document.getElementById("btn-install-app");
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -904,7 +1009,7 @@
     window.addEventListener('appinstalled', () => {
         deferredPrompt = null;
         installBtn.style.display = "none";
-        showToast("Ứng dụng đã được cài đặt thành công!", "success");
+        showToast("Ứng dụng đã cài đặt thành công!", "success");
     });
 
     installBtn.addEventListener("click", async () => {
@@ -960,27 +1065,33 @@
         updateChart();
     }
 
-    // TAB CONTROLLER
+    // HIGH-REFRESH RATE VSYNC TAB CONTROLLER
     function setupTabs(barId) {
         const bar = document.getElementById(barId);
         bar.addEventListener("click", (e) => {
             const btn = e.target.closest(".tab-btn");
-            if (!btn) return;
+            if (!btn || btn.classList.contains("active")) return;
 
-            bar.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
+            requestAnimationFrame(() => {
+                bar.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
 
-            const targetId = btn.dataset.tab;
-            const parent = bar.parentElement;
-            parent.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
-            document.getElementById(targetId).classList.add("active");
+                const targetId = btn.dataset.tab;
+                const parent = bar.parentElement;
+                parent.querySelectorAll(".tab-content").forEach(tc => {
+                    tc.classList.remove("active");
+                });
+                
+                const targetContent = document.getElementById(targetId);
+                targetContent.classList.add("active");
+            });
         });
     }
     setupTabs("formTabBar");
     setupTabs("viewTabBar");
 
     const formatMoney = (num) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(num) || 0);
-    const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&#039;");
+    const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     const formatDate = (d) => {
         if (!d) return "";
         const parts = d.split("-");
@@ -1012,9 +1123,12 @@
         container.appendChild(toast);
 
         setTimeout(() => {
-            toast.style.opacity = "0";
-            setTimeout(() => toast.remove(), 300);
-        }, 4000);
+            requestAnimationFrame(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translate3d(0, -10px, 0)";
+                setTimeout(() => toast.remove(), 250);
+            });
+        }, 3500);
     }
 
     function checkBillAndBudgetAlerts() {
@@ -1062,7 +1176,6 @@
         return `<span class="badge-due badge-due-safe">📅 Hạn: ${formatDate(dueDateStr)}</span>`;
     }
 
-    // PERSISTENCE CACHING HELPER
     function syncLocalCache() {
         localStorage.setItem("cache_tx", JSON.stringify(transactions));
         localStorage.setItem("cache_debts", JSON.stringify(debts));
@@ -1071,7 +1184,6 @@
         localStorage.setItem("cache_recurring", JSON.stringify(recurringRules));
     }
 
-    // RECURRING ENGINE
     async function processRecurringTransactions() {
         if (recurringRules.length === 0) return;
         const now = new Date();
@@ -1101,7 +1213,6 @@
                     transactions.push(recItem);
                     syncLocalCache();
 
-                    // Non-blocking background sync
                     addDoc(collection(db, "transactions"), recItem).then(docRef => {
                         recItem.id = docRef.id;
                         syncLocalCache();
@@ -1111,16 +1222,16 @@
         }
     }
 
-    // FAST BACKGROUND ASYNC DATA SYNC
     async function loadAllData() {
-        // Fast Render from local storage cache first
-        renderTransactions();
-        renderRecurringList();
-        renderDebts();
-        renderBudgets();
-        renderSavings();
-        updateDashboard();
-        updateChart();
+        requestAnimationFrame(() => {
+            renderTransactions();
+            renderRecurringList();
+            renderDebts();
+            renderBudgets();
+            renderSavings();
+            updateDashboard();
+            updateChart();
+        });
 
         if (!navigator.onLine) return;
 
@@ -1142,20 +1253,21 @@
             syncLocalCache();
             await processRecurringTransactions();
 
-            renderTransactions();
-            renderRecurringList();
-            renderDebts();
-            renderBudgets();
-            renderSavings();
-            updateDashboard();
-            updateChart();
-            checkBillAndBudgetAlerts();
+            requestAnimationFrame(() => {
+                renderTransactions();
+                renderRecurringList();
+                renderDebts();
+                renderBudgets();
+                renderSavings();
+                updateDashboard();
+                updateChart();
+                checkBillAndBudgetAlerts();
+            });
         } catch (err) {
             console.warn("Offline/Slow network fallback active:", err);
         }
     }
 
-    // OPTIMISTIC TRANSACTIONS
     async function addTransaction(customPayload = null) {
         let type, amount, category, wallet, date, note;
 
@@ -1181,12 +1293,14 @@
         const tempId = `temp_${Date.now()}`;
         const newTx = { id: tempId, type, amount, category, wallet, date, note: note || "Không có ghi chú", createdAt: new Date().toISOString() };
 
-        // 1. Optimistic UI update (Instant feedback)
         transactions.unshift(newTx);
         syncLocalCache();
-        renderTransactions();
-        updateDashboard();
-        updateChart();
+        
+        requestAnimationFrame(() => {
+            renderTransactions();
+            updateDashboard();
+            updateChart();
+        });
 
         if (!customPayload) {
             document.getElementById("amount").value = "";
@@ -1194,7 +1308,6 @@
         }
         showToast(`Đã thêm: ${formatMoney(amount)} (${category})`, "success");
 
-        // 2. Background Firestore Sync
         try {
             const docRef = await addDoc(collection(db, "transactions"), { type, amount, category, wallet, date, note: newTx.note, createdAt: newTx.createdAt });
             newTx.id = docRef.id;
@@ -1219,18 +1332,19 @@
         const outTx = { id: `temp_out_${Date.now()}`, type: "expense", amount, category: "Chuyển ví", wallet: fromWallet, date: today, note: `[Xuất ví] ${noteText}`, transferGroupId, createdAt: new Date().toISOString() };
         const inTx = { id: `temp_in_${Date.now()}`, type: "income", amount, category: "Chuyển ví", wallet: toWallet, date: today, note: `[Nhập ví] ${noteText}`, transferGroupId, createdAt: new Date().toISOString() };
 
-        // Optimistic local update
         transactions.unshift(outTx, inTx);
         syncLocalCache();
-        renderTransactions();
-        updateDashboard();
+        
+        requestAnimationFrame(() => {
+            renderTransactions();
+            updateDashboard();
+        });
 
         document.getElementById("transferAmount").value = "";
         document.getElementById("transferNote").value = "";
         document.getElementById("transferModal").classList.remove("show");
         showToast(`Chuyển ${formatMoney(amount)} thành công!`, "success");
 
-        // Async network commit
         Promise.allSettled([
             addDoc(collection(db, "transactions"), outTx),
             addDoc(collection(db, "transactions"), inTx)
@@ -1240,12 +1354,14 @@
     async function deleteTransaction(id) {
         if (!confirm("Bạn có chắc muốn xóa giao dịch này?")) return;
         
-        // Optimistic remove
         transactions = transactions.filter(t => t.id !== id);
         syncLocalCache();
-        renderTransactions();
-        updateDashboard();
-        updateChart();
+        
+        requestAnimationFrame(() => {
+            renderTransactions();
+            updateDashboard();
+            updateChart();
+        });
         showToast("Đã xóa giao dịch", "info");
 
         if (!id.startsWith("temp_")) {
@@ -1290,7 +1406,6 @@
             return;
         }
 
-        // Fast memory DOM batching
         let htmlBuffer = "";
         for (let i = 0; i < filtered.length; i++) {
             const t = filtered[i];
@@ -1314,7 +1429,6 @@
         list.innerHTML = htmlBuffer;
     }
 
-    // RECURRING RULES
     async function addRecurringRule() {
         const type = document.querySelector('input[name="recType"]:checked').value;
         const amount = Number(document.getElementById("recAmount").value);
@@ -1328,7 +1442,8 @@
         const newRule = { id: `temp_r_${Date.now()}`, type, amount, wallet, category, day, note: note || "Giao dịch định kỳ", createdAt: new Date().toISOString() };
         recurringRules.push(newRule);
         syncLocalCache();
-        renderRecurringList();
+        
+        requestAnimationFrame(() => renderRecurringList());
 
         document.getElementById("recAmount").value = "";
         document.getElementById("recDay").value = "";
@@ -1345,7 +1460,7 @@
         if (!confirm("Hủy giao dịch định kỳ này?")) return;
         recurringRules = recurringRules.filter(r => r.id !== id);
         syncLocalCache();
-        renderRecurringList();
+        requestAnimationFrame(() => renderRecurringList());
         showToast("Đã hủy quy tắc định kỳ", "info");
 
         if (!id.startsWith("temp_")) deleteDoc(doc(db, "recurring", id)).catch(e => console.error(e));
@@ -1379,7 +1494,6 @@
         list.innerHTML = htmlBuffer;
     }
 
-    // DEBTS
     async function addDebt() {
         const type = document.querySelector('input[name="debtType"]:checked').value;
         const person = document.getElementById("debtPerson").value.trim();
@@ -1393,8 +1507,11 @@
         const newDebt = { id: `temp_d_${Date.now()}`, type, person, amount, remainingAmount: amount, date, dueDate: dueDate || null, note: note || "Không có ghi chú", status: "pending", createdAt: new Date().toISOString() };
         debts.unshift(newDebt);
         syncLocalCache();
-        renderDebts();
-        updateDashboard();
+        
+        requestAnimationFrame(() => {
+            renderDebts();
+            updateDashboard();
+        });
 
         document.getElementById("debtPerson").value = "";
         document.getElementById("debtAmount").value = "";
@@ -1416,8 +1533,10 @@
             d.remainingAmount = 0;
             d.paidAt = new Date().toISOString();
             syncLocalCache();
-            renderDebts();
-            updateDashboard();
+            requestAnimationFrame(() => {
+                renderDebts();
+                updateDashboard();
+            });
             showToast("Đã tất toán toàn bộ!", "success");
 
             if (!id.startsWith("temp_")) {
@@ -1440,8 +1559,10 @@
             d.updatedAt = new Date().toISOString();
             if (d.remainingAmount === 0) { d.status = "paid"; d.paidAt = new Date().toISOString(); }
             syncLocalCache();
-            renderDebts();
-            updateDashboard();
+            requestAnimationFrame(() => {
+                renderDebts();
+                updateDashboard();
+            });
             showToast(`Đã trả bớt ${formatMoney(payAmount)}. Còn nợ: ${formatMoney(d.remainingAmount)}`, "success");
 
             if (!id.startsWith("temp_")) {
@@ -1454,8 +1575,10 @@
         if (!confirm("Bạn có chắc muốn xóa bản ghi nợ này?")) return;
         debts = debts.filter(d => d.id !== id);
         syncLocalCache();
-        renderDebts();
-        updateDashboard();
+        requestAnimationFrame(() => {
+            renderDebts();
+            updateDashboard();
+        });
         showToast("Đã xóa khoản nợ", "info");
 
         if (!id.startsWith("temp_")) deleteDoc(doc(db, "debts", id)).catch(e => console.error(e));
@@ -1516,7 +1639,6 @@
         list.innerHTML = htmlBuffer;
     }
 
-    // BUDGETS
     async function setCategoryBudget() {
         const category = document.getElementById("budgetCategory").value;
         const limit = Number(document.getElementById("budgetLimit").value);
@@ -1528,7 +1650,7 @@
         if (idx >= 0) budgets[idx] = bItem; else budgets.push(bItem);
 
         syncLocalCache();
-        renderBudgets();
+        requestAnimationFrame(() => renderBudgets());
         document.getElementById("budgetLimit").value = "";
         showToast(`Đã lưu hạn mức cho "${category}": ${formatMoney(limit)}`, "success");
 
@@ -1539,7 +1661,7 @@
         if (!confirm(`Xóa hạn mức danh mục "${category}"?`)) return;
         budgets = budgets.filter(b => b.category !== category);
         syncLocalCache();
-        renderBudgets();
+        requestAnimationFrame(() => renderBudgets());
         showToast("Đã xóa hạn mức", "info");
 
         deleteDoc(doc(db, "budgets", category)).catch(e => console.error(e));
@@ -1600,7 +1722,6 @@
         list.innerHTML = htmlBuffer;
     }
 
-    // SAVINGS
     async function addSavingsTarget() {
         const name = document.getElementById("savingName").value.trim();
         const targetAmount = Number(document.getElementById("savingTarget").value);
@@ -1612,7 +1733,7 @@
         const newSaving = { id: `temp_s_${Date.now()}`, name, targetAmount, currentAmount, deadline: deadline || null, createdAt: new Date().toISOString() };
         savings.unshift(newSaving);
         syncLocalCache();
-        renderSavings();
+        requestAnimationFrame(() => renderSavings());
 
         document.getElementById("savingName").value = "";
         document.getElementById("savingTarget").value = "";
@@ -1638,7 +1759,7 @@
             s.currentAmount = current + depositAmount;
             s.updatedAt = new Date().toISOString();
             syncLocalCache();
-            renderSavings();
+            requestAnimationFrame(() => renderSavings());
             showToast(`Đã tích lũy thêm ${formatMoney(depositAmount)}!`, "success");
 
             if (!id.startsWith("temp_")) {
@@ -1651,7 +1772,7 @@
         if (!confirm("Bạn có chắc muốn xóa mục tiêu tiết kiệm này?")) return;
         savings = savings.filter(s => s.id !== id);
         syncLocalCache();
-        renderSavings();
+        requestAnimationFrame(() => renderSavings());
         showToast("Đã xóa mục tiêu", "info");
 
         if (!id.startsWith("temp_")) deleteDoc(doc(db, "savings", id)).catch(e => console.error(e));
@@ -1698,7 +1819,6 @@
         list.innerHTML = htmlBuffer;
     }
 
-    // CSV EXPORT
     function exportToCSV() {
         if (transactions.length === 0 && debts.length === 0) return alert("Chưa có dữ liệu để xuất file!");
 
@@ -1734,7 +1854,6 @@
         document.body.removeChild(a);
     }
 
-    // DASHBOARD CALCULATIONS
     function updateDashboard() {
         let totalIncome = 0, totalExpense = 0, totalOwedToYou = 0, totalYouOwe = 0;
         let walletBalances = { cash: 0, bank: 0, ewallet: 0 };
@@ -1774,7 +1893,6 @@
         document.getElementById("totalYouOwe").textContent = formatMoney(totalYouOwe);
     }
 
-    // DEFERRED CHART RENDERING FOR CPU EFFICIENCY
     function updateChart() {
         if (!window.Chart) return;
         requestAnimationFrame(() => {
@@ -1809,8 +1927,11 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    animation: { duration: 150 },
-                    resizeDelay: 200,
+                    animation: { 
+                        duration: 200, 
+                        easing: 'easeOutQuart'
+                    },
+                    resizeDelay: 100,
                     plugins: { 
                         legend: { 
                             position: "bottom",
@@ -1828,9 +1949,18 @@
     document.getElementById("btn-print-statement").addEventListener("click", () => window.print());
 
     // Transfer Modal
-    document.getElementById("btn-transfer-open").addEventListener("click", () => document.getElementById("transferModal").classList.add("show"));
-    document.getElementById("btnCloseTransfer").addEventListener("click", () => document.getElementById("transferModal").classList.remove("show"));
-    document.getElementById("btnCancelTransfer").addEventListener("click", () => document.getElementById("transferModal").classList.remove("show"));
+    document.getElementById("btn-transfer-open").addEventListener("click", () => {
+        const modal = document.getElementById("transferModal");
+        modal.style.display = "flex";
+        requestAnimationFrame(() => modal.classList.add("show"));
+    });
+    const closeTransferModal = () => {
+        const modal = document.getElementById("transferModal");
+        modal.classList.remove("show");
+        setTimeout(() => modal.style.display = "none", 250);
+    };
+    document.getElementById("btnCloseTransfer").addEventListener("click", closeTransferModal);
+    document.getElementById("btnCancelTransfer").addEventListener("click", closeTransferModal);
     document.getElementById("btnConfirmTransfer").addEventListener("click", executeWalletTransfer);
 
     // Form buttons
@@ -1909,7 +2039,6 @@
         if (delBtn) deleteSavingsTarget(delBtn.dataset.id);
     });
 
-    // Initial Load
     loadAllData();
 </script>
 
