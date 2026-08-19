@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Quản Lý Chi Tiêu & Nợ</title>
 
-    <!-- PWA Setup -->
+    <!-- PWA Meta -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,9 +13,10 @@
     <meta name="apple-mobile-web-app-title" content="Chi Tiêu">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2454/2454282.png">
 
-    <link rel="preconnect" href="https://firestore.googleapis.com">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <!-- Preconnect for speed -->
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 
+    <!-- Chart.js with async graceful fallback -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" defer></script>
 
     <style>
@@ -30,7 +31,7 @@
             --icon-bg: #f1f5f9;
             --box-bg: #f8fafc;
             --tab-active: #2563eb;
-            --ease-high-refresh: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         [data-theme="dark"] {
@@ -50,23 +51,19 @@
             box-sizing: border-box; 
             margin: 0; 
             padding: 0; 
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif; 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             -webkit-tap-highlight-color: transparent;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
 
         body { 
             background: var(--bg-body); 
             color: var(--text-main); 
             line-height: 1.5; 
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             touch-action: manipulation;
             padding-bottom: env(safe-area-inset-bottom, 20px);
-            text-rendering: optimizeLegibility;
             overflow-x: hidden;
         }
 
@@ -89,8 +86,7 @@
             align-items: center; 
             flex-wrap: wrap; 
             gap: 14px; 
-            transform: translate3d(0, 0, 0);
-            backface-visibility: hidden;
+            transform: translate3d(0,0,0);
         }
         .header h1 { 
             font-size: clamp(20px, 4vw, 26px); 
@@ -114,7 +110,7 @@
             justify-content: flex-start;
         }
 
-        /* NETWORK BADGE */
+        /* NETWORK / PRIVACY BADGE */
         .net-status {
             font-size: 11px;
             font-weight: 700;
@@ -126,7 +122,6 @@
             align-items: center;
             gap: 5px;
             margin-left: 8px;
-            transform: translateZ(0);
         }
         .net-online { color: #86efac; }
         .net-offline { color: #fca5a5; }
@@ -144,8 +139,7 @@
             gap: 5px; 
             min-height: 38px;
             transform: translate3d(0,0,0);
-            transition: transform 0.15s var(--ease-high-refresh), opacity 0.15s var(--ease-high-refresh), background-color 0.15s var(--ease-high-refresh);
-            will-change: transform, opacity;
+            transition: transform 0.15s var(--ease-standard), opacity 0.15s var(--ease-standard);
         }
         .btn-install { background: #f59e0b; }
         .btn-install:hover { background: #d97706; transform: translate3d(0, -1px, 0); }
@@ -180,7 +174,7 @@
             overflow: hidden; 
             contain: layout style paint;
             transform: translate3d(0, 0, 0);
-            transition: transform 0.2s var(--ease-high-refresh), box-shadow 0.2s var(--ease-high-refresh), background-color 0.2s ease, border-color 0.2s ease;
+            transition: transform 0.2s var(--ease-standard), box-shadow 0.2s var(--ease-standard);
         }
         .card:hover {
             transform: translate3d(0, -2px, 0);
@@ -221,7 +215,6 @@
             overflow-x: auto; 
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none; 
-            transform: translateZ(0);
         }
         .tab-bar::-webkit-scrollbar { display: none; }
         .tab-btn { 
@@ -237,8 +230,7 @@
             white-space: nowrap; 
             text-align: center; 
             min-height: 40px;
-            transform: translate3d(0, 0, 0);
-            transition: all 0.18s var(--ease-high-refresh);
+            transition: all 0.18s var(--ease-standard);
         }
         .tab-btn.active { 
             background: var(--card-bg); 
@@ -263,7 +255,6 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
             border: 1px solid var(--card-border); 
             contain: layout style;
-            transform: translate3d(0,0,0);
         }
         .section h2 { 
             margin-bottom: 16px; 
@@ -276,17 +267,8 @@
         }
 
         /* TAB PANELS */
-        .tab-content { 
-            display: none; 
-            opacity: 0;
-            transform: translate3d(0, 4px, 0);
-            transition: opacity 0.2s var(--ease-high-refresh), transform 0.2s var(--ease-high-refresh);
-        }
-        .tab-content.active { 
-            display: block; 
-            opacity: 1;
-            transform: translate3d(0, 0, 0);
-        }
+        .tab-content { display: none; opacity: 0; transform: translate3d(0, 4px, 0); transition: opacity 0.2s var(--ease-standard), transform 0.2s var(--ease-standard); }
+        .tab-content.active { display: block; opacity: 1; transform: translate3d(0, 0, 0); }
 
         /* QUICK ADD CHIPS */
         .chips-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
@@ -302,19 +284,13 @@
             min-height: 32px;
             display: inline-flex;
             align-items: center;
-            transform: translate3d(0, 0, 0);
-            transition: all 0.15s var(--ease-high-refresh);
-            will-change: transform;
+            transition: all 0.15s var(--ease-standard);
         }
         .chip:hover { 
             background: #2563eb; 
             color: white; 
             border-color: #2563eb; 
             transform: translate3d(0, -2px, 0);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-        }
-        .chip:active {
-            transform: translate3d(0, 0, 0);
         }
 
         /* FORMS */
@@ -331,12 +307,8 @@
             font-size: 14px; 
             font-weight: 500; 
             min-height: 44px;
-            transition: border-color 0.15s var(--ease-high-refresh), box-shadow 0.15s var(--ease-high-refresh);
         }
-        input:focus, select:focus { 
-            border-color: #2563eb; 
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); 
-        }
+        input:focus, select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
         
         .radio-group { display: flex; gap: 8px; }
         .radio-option { flex: 1; }
@@ -355,7 +327,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s var(--ease-high-refresh);
+            transition: all 0.15s var(--ease-standard);
         }
         .radio-option input:checked + label { 
             background: #2563eb; 
@@ -373,16 +345,10 @@
             font-size: 13.5px; 
             font-weight: 700; 
             min-height: 44px;
-            transform: translate3d(0, 0, 0);
-            transition: all 0.15s var(--ease-high-refresh);
-            will-change: transform;
+            transition: all 0.15s var(--ease-standard);
         }
-        button:hover {
-            transform: translate3d(0, -1px, 0);
-        }
-        button:active {
-            transform: translate3d(0, 1px, 0);
-        }
+        button:hover { transform: translate3d(0, -1px, 0); }
+        button:active { transform: translate3d(0, 1px, 0); }
         button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .btn-add { width: 100%; background: #2563eb; color: white; }
         .btn-add:hover { background: #1d4ed8; }
@@ -422,8 +388,6 @@
             gap: 8px;
             content-visibility: auto;
             contain-intrinsic-size: 60px;
-            transform: translate3d(0, 0, 0);
-            transition: background-color 0.15s var(--ease-high-refresh);
         }
         .transaction:last-child { border-bottom: none; }
         .transaction-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
@@ -437,7 +401,6 @@
             background: var(--icon-bg); 
             font-size: 17px; 
             flex-shrink: 0; 
-            transform: translateZ(0);
         }
         .transaction-info { min-width: 0; flex: 1; }
         .transaction-info h3 { 
@@ -484,12 +447,11 @@
             border-radius: 12px; 
             background: var(--box-bg); 
             contain: layout style paint; 
-            transform: translate3d(0, 0, 0);
         }
         .progress-header { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; margin-bottom: 5px; flex-wrap: wrap; gap: 4px; }
         .progress-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-sub); margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
-        .progress-bar-bg { height: 8px; background: var(--card-border); border-radius: 4px; overflow: hidden; width: 100%; transform: translateZ(0); }
-        .progress-bar-fill { height: 100%; transition: width 0.35s var(--ease-high-refresh); border-radius: 4px; will-change: width; }
+        .progress-bar-bg { height: 8px; background: var(--card-border); border-radius: 4px; overflow: hidden; width: 100%; }
+        .progress-bar-fill { height: 100%; transition: width 0.35s var(--ease-standard); border-radius: 4px; }
         .fill-green { background: #16a34a; }
         .fill-yellow { background: #eab308; }
         .fill-red { background: #dc2626; }
@@ -519,9 +481,7 @@
             pointer-events: auto; 
             border-left: 4px solid #2563eb; 
             font-size: 12.5px; 
-            transform: translate3d(0, 0, 0); 
-            transition: transform 0.25s var(--ease-high-refresh), opacity 0.25s var(--ease-high-refresh);
-            will-change: transform, opacity;
+            transition: transform 0.25s var(--ease-standard), opacity 0.25s var(--ease-standard);
         }
         .toast.toast-warning { border-left-color: #f59e0b; }
         .toast.toast-danger { border-left-color: #ef4444; }
@@ -542,7 +502,7 @@
             z-index: 10000; 
             padding: 0; 
             opacity: 0;
-            transition: opacity 0.2s var(--ease-high-refresh);
+            transition: opacity 0.2s var(--ease-standard);
         }
         .modal-overlay.show { display: flex; opacity: 1; }
         .modal-box { 
@@ -555,30 +515,25 @@
             box-shadow: 0 -10px 40px rgba(0,0,0,0.2); 
             contain: layout style paint;
             transform: translate3d(0, 100%, 0);
-            transition: transform 0.25s var(--ease-high-refresh);
-            will-change: transform;
+            transition: transform 0.25s var(--ease-standard);
         }
-        .modal-overlay.show .modal-box {
-            transform: translate3d(0, 0, 0);
-        }
+        .modal-overlay.show .modal-box { transform: translate3d(0, 0, 0); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
         .modal-close { background: none; border: none; font-size: 22px; color: var(--text-sub); cursor: pointer; padding: 0; min-height: 30px; }
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 
-        .chart-container { position: relative; height: 240px; transform: translateZ(0); }
+        .chart-container { position: relative; height: 240px; }
+
+        /* CSS-ONLY CHART FALLBACK (When CDN/JS is blocked) */
+        .chart-fallback-list { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
+        .chart-fallback-item { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; }
 
         /* MEDIA QUERIES */
         @media (min-width: 600px) {
             .modal-overlay { align-items: center; padding: 20px; }
-            .modal-box { 
-                border-radius: 16px; 
-                padding: 24px; 
-                transform: scale(0.95) translate3d(0,0,0);
-            }
-            .modal-overlay.show .modal-box {
-                transform: scale(1) translate3d(0,0,0);
-            }
+            .modal-box { border-radius: 16px; padding: 24px; transform: scale(0.95) translate3d(0,0,0); }
+            .modal-overlay.show .modal-box { transform: scale(1) translate3d(0,0,0); }
             .toast-container { left: auto; width: auto; }
         }
 
@@ -884,10 +839,12 @@
                 </div>
             </div>
 
-            <!-- BIỂU ĐỒ CHI TIÊU -->
+            <!-- BIỂU ĐỒ CHI TIÊU HOẶC FALLBACK DANH MỤC -->
             <div class="section" style="margin-top: 16px;">
                 <h2>📊 Phân Bổ Chi Tiêu</h2>
-                <div class="chart-container"><canvas id="expenseChart"></canvas></div>
+                <div class="chart-container" id="chartWrapper">
+                    <canvas id="expenseChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -967,28 +924,44 @@
     </div>
 </div>
 
-<!-- FIREBASE DIRECT CLIENT SCRIPT -->
+<!-- RESILIENT JAVASCRIPT & FIREBASE ENGINE -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
         getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // NETWORK MONITORING
+    // 1. PRIVACY & INCOGNITO SAFE STORAGE ENGINE
+    const memoryStore = {};
+    const safeStorage = {
+        getItem(key) {
+            try { return localStorage.getItem(key); } 
+            catch (e) { return memoryStore[key] || null; }
+        },
+        setItem(key, val) {
+            try { localStorage.setItem(key, val); } 
+            catch (e) { memoryStore[key] = String(val); }
+        },
+        removeItem(key) {
+            try { localStorage.removeItem(key); } 
+            catch (e) { delete memoryStore[key]; }
+        }
+    };
+
+    // 2. NETWORK & VPN MONITORING
     const netStatusEl = document.getElementById("netStatus");
     function updateOnlineStatus() {
         if (navigator.onLine) {
             netStatusEl.innerHTML = `<span class="net-online">●</span> Online`;
         } else {
             netStatusEl.innerHTML = `<span class="net-offline">●</span> Ngoại tuyến`;
-            showToast("Mất kết nối Internet. Đang dùng bộ nhớ đệm.", "warning");
         }
     }
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-    // PWA INSTALLATION
+    // 3. PWA INSTALLATION ENGINE
     let deferredPrompt = null;
     const installBtn = document.getElementById("btn-install-app");
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -996,7 +969,7 @@
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
         });
     }
 
@@ -1028,7 +1001,7 @@
         }
     });
 
-    // FIREBASE INITIALIZATION
+    // 4. FIREBASE INITIALIZATION
     const firebaseConfig = {
         apiKey: "AIzaSyB8WvfnEI-s9hdUpMvDSulzD5_BfJtAE48",
         authDomain: "quan-li-chi-tieu-e82b1.firebaseapp.com",
@@ -1041,31 +1014,39 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // LOCAL CACHE & STATE
-    let transactions = JSON.parse(localStorage.getItem("cache_tx")) || [];
-    let debts = JSON.parse(localStorage.getItem("cache_debts")) || [];
-    let budgets = JSON.parse(localStorage.getItem("cache_budgets")) || [];
-    let savings = JSON.parse(localStorage.getItem("cache_savings")) || [];
-    let recurringRules = JSON.parse(localStorage.getItem("cache_recurring")) || [];
+    // 5. CACHE-FIRST APPLICATION STATE
+    let transactions = [];
+    let debts = [];
+    let budgets = [];
+    let savings = [];
+    let recurringRules = [];
     let expenseChart = null;
+
+    try {
+        transactions = JSON.parse(safeStorage.getItem("cache_tx")) || [];
+        debts = JSON.parse(safeStorage.getItem("cache_debts")) || [];
+        budgets = JSON.parse(safeStorage.getItem("cache_budgets")) || [];
+        savings = JSON.parse(safeStorage.getItem("cache_savings")) || [];
+        recurringRules = JSON.parse(safeStorage.getItem("cache_recurring")) || [];
+    } catch(e) {}
 
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("date").value = today;
     document.getElementById("debtDate").value = today;
 
     // THEME HANDLING
-    const savedTheme = localStorage.getItem("app_theme") || "light";
+    const savedTheme = safeStorage.getItem("app_theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
 
     function toggleTheme() {
         const curr = document.documentElement.getAttribute("data-theme");
         const next = curr === "dark" ? "light" : "dark";
         document.documentElement.setAttribute("data-theme", next);
-        localStorage.setItem("app_theme", next);
+        safeStorage.setItem("app_theme", next);
         updateChart();
     }
 
-    // HIGH-REFRESH RATE VSYNC TAB CONTROLLER
+    // TAB CONTROLLER
     function setupTabs(barId) {
         const bar = document.getElementById(barId);
         bar.addEventListener("click", (e) => {
@@ -1078,12 +1059,8 @@
 
                 const targetId = btn.dataset.tab;
                 const parent = bar.parentElement;
-                parent.querySelectorAll(".tab-content").forEach(tc => {
-                    tc.classList.remove("active");
-                });
-                
-                const targetContent = document.getElementById(targetId);
-                targetContent.classList.add("active");
+                parent.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
+                document.getElementById(targetId).classList.add("active");
             });
         });
     }
@@ -1177,11 +1154,13 @@
     }
 
     function syncLocalCache() {
-        localStorage.setItem("cache_tx", JSON.stringify(transactions));
-        localStorage.setItem("cache_debts", JSON.stringify(debts));
-        localStorage.setItem("cache_budgets", JSON.stringify(budgets));
-        localStorage.setItem("cache_savings", JSON.stringify(savings));
-        localStorage.setItem("cache_recurring", JSON.stringify(recurringRules));
+        try {
+            safeStorage.setItem("cache_tx", JSON.stringify(transactions));
+            safeStorage.setItem("cache_debts", JSON.stringify(debts));
+            safeStorage.setItem("cache_budgets", JSON.stringify(budgets));
+            safeStorage.setItem("cache_savings", JSON.stringify(savings));
+            safeStorage.setItem("cache_recurring", JSON.stringify(recurringRules));
+        } catch(e) {}
     }
 
     async function processRecurringTransactions() {
@@ -1216,12 +1195,13 @@
                     addDoc(collection(db, "transactions"), recItem).then(docRef => {
                         recItem.id = docRef.id;
                         syncLocalCache();
-                    }).catch(e => console.error("Recurring sync:", e));
+                    }).catch(() => {});
                 }
             }
         }
     }
 
+    // 6. SAFE ASYNC FIRESTORE LOADER WITH PROTECTIVE VPN TIMEOUT
     async function loadAllData() {
         requestAnimationFrame(() => {
             renderTransactions();
@@ -1236,7 +1216,8 @@
         if (!navigator.onLine) return;
 
         try {
-            const [txSnap, debtSnap, budgetSnap, saveSnap, recSnap] = await Promise.allSettled([
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('VPN_TIMEOUT')), 8000));
+            const fetchPromise = Promise.allSettled([
                 getDocs(collection(db, "transactions")),
                 getDocs(collection(db, "debts")),
                 getDocs(collection(db, "budgets")),
@@ -1244,11 +1225,13 @@
                 getDocs(collection(db, "recurring"))
             ]);
 
-            if (txSnap.status === 'fulfilled') transactions = txSnap.value.docs.map(d => ({ id: d.id, ...d.data() }));
-            if (debtSnap.status === 'fulfilled') debts = debtSnap.value.docs.map(d => ({ id: d.id, ...d.data() }));
-            if (budgetSnap.status === 'fulfilled') budgets = budgetSnap.value.docs.map(d => ({ id: d.id, ...d.data() }));
-            if (saveSnap.status === 'fulfilled') savings = saveSnap.value.docs.map(d => ({ id: d.id, ...d.data() }));
-            if (recSnap.status === 'fulfilled') recurringRules = recSnap.value.docs.map(d => ({ id: d.id, ...d.data() }));
+            const results = await Promise.race([fetchPromise, timeoutPromise]);
+
+            if (results[0].status === 'fulfilled') transactions = results[0].value.docs.map(d => ({ id: d.id, ...d.data() }));
+            if (results[1].status === 'fulfilled') debts = results[1].value.docs.map(d => ({ id: d.id, ...d.data() }));
+            if (results[2].status === 'fulfilled') budgets = results[2].value.docs.map(d => ({ id: d.id, ...d.data() }));
+            if (results[3].status === 'fulfilled') savings = results[3].value.docs.map(d => ({ id: d.id, ...d.data() }));
+            if (results[4].status === 'fulfilled') recurringRules = results[4].value.docs.map(d => ({ id: d.id, ...d.data() }));
 
             syncLocalCache();
             await processRecurringTransactions();
@@ -1264,7 +1247,7 @@
                 checkBillAndBudgetAlerts();
             });
         } catch (err) {
-            console.warn("Offline/Slow network fallback active:", err);
+            console.warn("Using offline safe cache:", err.message);
         }
     }
 
@@ -1308,13 +1291,10 @@
         }
         showToast(`Đã thêm: ${formatMoney(amount)} (${category})`, "success");
 
-        try {
-            const docRef = await addDoc(collection(db, "transactions"), { type, amount, category, wallet, date, note: newTx.note, createdAt: newTx.createdAt });
+        addDoc(collection(db, "transactions"), { type, amount, category, wallet, date, note: newTx.note, createdAt: newTx.createdAt }).then(docRef => {
             newTx.id = docRef.id;
             syncLocalCache();
-        } catch (err) {
-            console.error("Delayed network write:", err);
-        }
+        }).catch(() => {});
     }
 
     async function executeWalletTransfer() {
@@ -1348,7 +1328,7 @@
         Promise.allSettled([
             addDoc(collection(db, "transactions"), outTx),
             addDoc(collection(db, "transactions"), inTx)
-        ]).catch(err => console.error("Transfer background sync error:", err));
+        ]).catch(() => {});
     }
 
     async function deleteTransaction(id) {
@@ -1365,7 +1345,7 @@
         showToast("Đã xóa giao dịch", "info");
 
         if (!id.startsWith("temp_")) {
-            deleteDoc(doc(db, "transactions", id)).catch(err => console.error("Delayed delete sync:", err));
+            deleteDoc(doc(db, "transactions", id)).catch(() => {});
         }
     }
 
@@ -1453,7 +1433,7 @@
         addDoc(collection(db, "recurring"), newRule).then(d => {
             newRule.id = d.id;
             syncLocalCache();
-        }).catch(e => console.error("Recurring sync error:", e));
+        }).catch(() => {});
     }
 
     async function deleteRecurringRule(id) {
@@ -1463,7 +1443,7 @@
         requestAnimationFrame(() => renderRecurringList());
         showToast("Đã hủy quy tắc định kỳ", "info");
 
-        if (!id.startsWith("temp_")) deleteDoc(doc(db, "recurring", id)).catch(e => console.error(e));
+        if (!id.startsWith("temp_")) deleteDoc(doc(db, "recurring", id)).catch(() => {});
     }
 
     function renderRecurringList() {
@@ -1522,7 +1502,7 @@
         addDoc(collection(db, "debts"), newDebt).then(d => {
             newDebt.id = d.id;
             syncLocalCache();
-        }).catch(e => console.error(e));
+        }).catch(() => {});
     }
 
     async function payDebtFull(id) {
@@ -1540,7 +1520,7 @@
             showToast("Đã tất toán toàn bộ!", "success");
 
             if (!id.startsWith("temp_")) {
-                updateDoc(doc(db, "debts", id), { status: "paid", remainingAmount: 0, paidAt: d.paidAt }).catch(e => console.error(e));
+                updateDoc(doc(db, "debts", id), { status: "paid", remainingAmount: 0, paidAt: d.paidAt }).catch(() => {});
             }
         }
     }
@@ -1566,7 +1546,7 @@
             showToast(`Đã trả bớt ${formatMoney(payAmount)}. Còn nợ: ${formatMoney(d.remainingAmount)}`, "success");
 
             if (!id.startsWith("temp_")) {
-                updateDoc(doc(db, "debts", id), { remainingAmount: d.remainingAmount, status: d.status, paidAt: d.paidAt || null }).catch(e => console.error(e));
+                updateDoc(doc(db, "debts", id), { remainingAmount: d.remainingAmount, status: d.status, paidAt: d.paidAt || null }).catch(() => {});
             }
         }
     }
@@ -1581,7 +1561,7 @@
         });
         showToast("Đã xóa khoản nợ", "info");
 
-        if (!id.startsWith("temp_")) deleteDoc(doc(db, "debts", id)).catch(e => console.error(e));
+        if (!id.startsWith("temp_")) deleteDoc(doc(db, "debts", id)).catch(() => {});
     }
 
     function renderDebts() {
@@ -1654,7 +1634,7 @@
         document.getElementById("budgetLimit").value = "";
         showToast(`Đã lưu hạn mức cho "${category}": ${formatMoney(limit)}`, "success");
 
-        setDoc(doc(db, "budgets", category), bItem).catch(e => console.error(e));
+        setDoc(doc(db, "budgets", category), bItem).catch(() => {});
     }
 
     async function deleteBudget(category) {
@@ -1664,7 +1644,7 @@
         requestAnimationFrame(() => renderBudgets());
         showToast("Đã xóa hạn mức", "info");
 
-        deleteDoc(doc(db, "budgets", category)).catch(e => console.error(e));
+        deleteDoc(doc(db, "budgets", category)).catch(() => {});
     }
 
     function renderBudgets() {
@@ -1744,7 +1724,7 @@
         addDoc(collection(db, "savings"), newSaving).then(d => {
             newSaving.id = d.id;
             syncLocalCache();
-        }).catch(e => console.error(e));
+        }).catch(() => {});
     }
 
     async function depositToSavings(id, current, target) {
@@ -1763,7 +1743,7 @@
             showToast(`Đã tích lũy thêm ${formatMoney(depositAmount)}!`, "success");
 
             if (!id.startsWith("temp_")) {
-                updateDoc(doc(db, "savings", id), { currentAmount: s.currentAmount }).catch(e => console.error(e));
+                updateDoc(doc(db, "savings", id), { currentAmount: s.currentAmount }).catch(() => {});
             }
         }
     }
@@ -1775,7 +1755,7 @@
         requestAnimationFrame(() => renderSavings());
         showToast("Đã xóa mục tiêu", "info");
 
-        if (!id.startsWith("temp_")) deleteDoc(doc(db, "savings", id)).catch(e => console.error(e));
+        if (!id.startsWith("temp_")) deleteDoc(doc(db, "savings", id)).catch(() => {});
     }
 
     function renderSavings() {
@@ -1893,19 +1873,44 @@
         document.getElementById("totalYouOwe").textContent = formatMoney(totalYouOwe);
     }
 
+    // 7. CHART ENGINE WITH GRACEFUL CSS FALLBACK IF BLOCKED
     function updateChart() {
-        if (!window.Chart) return;
-        requestAnimationFrame(() => {
-            const catTotals = {};
-            for (let i = 0; i < transactions.length; i++) {
-                const t = transactions[i];
-                if (t.type === "expense" && t.category !== "Chuyển ví") {
-                    catTotals[t.category] = (catTotals[t.category] || 0) + Number(t.amount);
-                }
+        const catTotals = {};
+        for (let i = 0; i < transactions.length; i++) {
+            const t = transactions[i];
+            if (t.type === "expense" && t.category !== "Chuyển ví") {
+                catTotals[t.category] = (catTotals[t.category] || 0) + Number(t.amount);
             }
+        }
 
-            const labels = Object.keys(catTotals);
-            const data = Object.values(catTotals);
+        const labels = Object.keys(catTotals);
+        const data = Object.values(catTotals);
+        const wrapper = document.getElementById("chartWrapper");
+
+        // If Chart.js CDN is blocked by protective browser/DNS, render CSS summary bars
+        if (!window.Chart) {
+            if (labels.length === 0) {
+                wrapper.innerHTML = `<div class="empty">Chưa có giao dịch chi tiêu</div>`;
+                return;
+            }
+            let fallbackHtml = `<div class="chart-fallback-list">`;
+            labels.forEach((lbl, idx) => {
+                fallbackHtml += `
+                <div class="chart-fallback-item">
+                    <span>${categoryIcons[lbl] || "📦"} ${escapeHTML(lbl)}</span>
+                    <b>${formatMoney(data[idx])}</b>
+                </div>`;
+            });
+            fallbackHtml += `</div>`;
+            wrapper.innerHTML = fallbackHtml;
+            return;
+        }
+
+        // Standard Chart.js rendering
+        requestAnimationFrame(() => {
+            if (!wrapper.querySelector('canvas')) {
+                wrapper.innerHTML = `<canvas id="expenseChart"></canvas>`;
+            }
             const ctx = document.getElementById("expenseChart").getContext("2d");
 
             if (expenseChart) expenseChart.destroy();
@@ -1927,10 +1932,7 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    animation: { 
-                        duration: 200, 
-                        easing: 'easeOutQuart'
-                    },
+                    animation: { duration: 200 },
                     resizeDelay: 100,
                     plugins: { 
                         legend: { 
@@ -2039,6 +2041,7 @@
         if (delBtn) deleteSavingsTarget(delBtn.dataset.id);
     });
 
+    // Initial Load
     loadAllData();
 </script>
 
