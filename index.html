@@ -135,12 +135,18 @@
         /* RECEIPT PREVIEW THUMBNAIL */
         .receipt-preview { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 1px solid var(--card-border); cursor: pointer; }
 
-        /* FILTER & TRANSACTIONS */
+        /* FILTER & TRANSACTIONS WITH SWIPE-TO-ACTION WRAPPER */
         .filter-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; background: var(--box-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--card-border); }
         .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
         .filter-row input, .filter-row select { flex: 1 1 120px; padding: 8px 10px; font-size: 12.5px; min-height: 40px; }
 
-        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--card-border); gap: 8px; }
+        .swipe-item-container { position: relative; overflow: hidden; border-bottom: 1px solid var(--card-border); }
+        .swipe-item-container:last-child { border-bottom: none; }
+        
+        .swipe-actions-right { position: absolute; top: 0; right: 0; bottom: 0; display: flex; align-items: center; z-index: 1; background: #fee2e2; }
+        .swipe-delete-trigger { background: #dc2626; color: white; height: 100%; padding: 0 20px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; cursor: pointer; border: none; }
+
+        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; background: var(--card-bg); position: relative; z-index: 2; transition: transform 0.2s ease; width: 100%; }
         .transaction-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
         .icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--icon-bg); font-size: 17px; flex-shrink: 0; }
         .transaction-info { min-width: 0; flex: 1; }
@@ -218,7 +224,7 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- CUSTOM INPUT MODAL (Replaces browser prompt) -->
+<!-- CUSTOM INPUT MODAL -->
 <div class="modal-overlay" id="customInputModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -376,7 +382,7 @@
     </div>
 
     <div class="main-grid">
-        <!-- CỘT TRÁI: FORM NHẬP LIỆU VỚI DROP-DOWN MENU -->
+        <!-- CỘT TRÁI: FORM NHẬP LIỆU -->
         <div>
             <div class="section">
                 <div class="dropdown-nav-group">
@@ -591,7 +597,6 @@
                                 <option value="all">Toàn bộ thời gian</option>
                                 <option value="today">Hôm nay</option>
                                 <option value="this_month" selected>Tháng này</option>
-                                <option value="last_month">Tháng trước</option>
                                 <option value="custom">Tùy chọn khoảng ngày</option>
                             </select>
                             <input type="date" id="filterFromDate" style="display:none;" title="Từ ngày">
@@ -627,14 +632,13 @@
     </div>
 </div>
 
-<!-- FIREBASE & INDEXEDDB OFFLINE CLIENT SCRIPT -->
+<!-- FIREBASE & OFFLINE CLIENT SCRIPT WITH SWIPE GESTURES -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
         getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 1. PRIVACY-SAFE STORAGE & INDEXEDDB ENGINE
     const memoryStore = {};
     const safeStorage = {
         getItem(key) { try { return localStorage.getItem(key); } catch (e) { return memoryStore[key] || null; } },
@@ -642,132 +646,28 @@
         removeItem(key) { try { localStorage.removeItem(key); } catch (e) { delete memoryStore[key]; } }
     };
 
-    // 2. FORM FACTOR RECOGNITION (FOLDABLES, TABLETS, PHABLETS, IPAD PRO)
     function detectDeviceEnvironment() {
         const width = window.innerWidth;
         const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         const ua = navigator.userAgent || "";
         const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform));
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
         let deviceName = "💻 PC / Màn hình lớn";
-        let isMobileDevice = false;
-
-        if (width <= 480) {
-            deviceName = "📱 Điện thoại / Fold nhỏ";
-            isMobileDevice = true;
-        } else if (width > 480 && width <= 768) {
-            deviceName = "📱 Phablet / Lớn";
-            isMobileDevice = true;
-        } else if (width > 768 && width <= 1366 && isTouch) {
-            deviceName = "📟 Tablet / iPad Pro";
-            isMobileDevice = true; 
-        }
-
-        return { isIOS: isIOS || (width <= 1366 && /Macintosh/i.test(ua) && isTouch), isMobileDevice, isStandalone, deviceName };
+        if (width <= 480) deviceName = "📱 Điện thoại / Fold nhỏ";
+        else if (width > 480 && width <= 768) deviceName = "📱 Phablet / Lớn";
+        else if (width > 768 && width <= 1366 && isTouch) deviceName = "📟 Tablet / iPad Pro";
+        return { isIOS: isIOS || (width <= 1366 && /Macintosh/i.test(ua) && isTouch), deviceName };
     }
+    document.getElementById("deviceBadge").textContent = detectDeviceEnvironment().deviceName;
 
-    const deviceEnv = detectDeviceEnvironment();
-    document.getElementById("deviceBadge").textContent = deviceEnv.deviceName;
-
-    // 3. NETWORK MONITORING
     const netStatusEl = document.getElementById("netStatus");
     function updateOnlineStatus() {
-        if (navigator.onLine) {
-            netStatusEl.innerHTML = `<span class="net-online">●</span> Online`;
-        } else {
-            netStatusEl.innerHTML = `<span class="net-offline">●</span> Ngoại tuyến`;
-        }
+        netStatusEl.innerHTML = navigator.onLine ? `<span class="net-online">●</span> Online` : `<span class="net-offline">●</span> Ngoại tuyến`;
     }
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-    // 4. INSTALLATION PROMPT
-    let deferredPrompt = null;
-    const installBtn = document.getElementById("btn-install-app");
-    const mobileBanner = document.getElementById("mobileInstallBanner");
-    const installModal = document.getElementById("installModal");
-    const installTitle = document.getElementById("installModalTitle");
-    const installBody = document.getElementById("installModalBody");
-    const installActionBtn = document.getElementById("btnActionInstallModal");
-
-    if (deviceEnv.isStandalone) {
-        installBtn.style.display = "none";
-        mobileBanner.style.display = "none";
-    } else if (deviceEnv.isMobileDevice) {
-        mobileBanner.classList.add("show");
-    }
-
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
-    }
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installBtn.style.display = "inline-flex";
-    });
-
-    window.addEventListener('appinstalled', () => {
-        deferredPrompt = null;
-        installBtn.style.display = "none";
-        mobileBanner.style.display = "none";
-        closeInstallModal();
-        showToast("Ứng dụng đã cài đặt thành công!", "success");
-    });
-
-    function openInstallModal() {
-        if (deviceEnv.isIOS) {
-            installTitle.textContent = "🍎 Hướng dẫn cài đặt trên iOS / iPadOS";
-            installBody.innerHTML = `
-                <div class="install-guide-step"><span class="step-num">1</span><span>Nhấn vào biểu tượng <b>Chia sẻ (Share) ⎋</b> ở Safari.</span></div>
-                <div class="install-guide-step"><span class="step-num">2</span><span>Chọn <b>'Thêm vào Màn hình chính' (Add to Home Screen) ➕</b>.</span></div>
-            `;
-            installActionBtn.textContent = "Đã hiểu";
-        } else if (deferredPrompt) {
-            installTitle.textContent = "📲 Cài đặt ứng dụng";
-            installBody.innerHTML = `<p>Nhấn bên dưới để cài đặt tự động.</p>`;
-            installActionBtn.textContent = "Cài đặt ngay";
-        } else {
-            installTitle.textContent = "💻 Cài đặt trên trình duyệt";
-            installBody.innerHTML = `<p>Nhấn vào biểu tượng Cài đặt (Install / ⊕) trên thanh địa chỉ trình duyệt.</p>`;
-            installActionBtn.textContent = "Đã hiểu";
-        }
-        installModal.style.display = "flex";
-        requestAnimationFrame(() => installModal.classList.add("show"));
-    }
-
-    function closeInstallModal() {
-        installModal.classList.remove("show");
-        setTimeout(() => installModal.style.display = "none", 250);
-    }
-
-    installBtn.addEventListener("click", () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(choice => {
-                if (choice.outcome === 'accepted') installBtn.style.display = 'none';
-                deferredPrompt = null;
-            });
-        } else { openInstallModal(); }
-    });
-
-    document.getElementById("btnBannerInstall").addEventListener("click", () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(choice => {
-                if (choice.outcome === 'accepted') { installBtn.style.display = 'none'; mobileBanner.style.display = 'none'; }
-                deferredPrompt = null;
-            });
-        } else { openInstallModal(); }
-    });
-
-    document.getElementById("btnCloseInstallModal").addEventListener("click", closeInstallModal);
-    document.getElementById("btnCancelInstallModal").addEventListener("click", closeInstallModal);
-    installActionBtn.addEventListener("click", closeInstallModal);
-
-    // 5. CUSTOM MODAL PROMPT REPLACEMENT
+    // CUSTOM MODAL PROMPT REPLACEMENT
     const customModal = document.getElementById("customInputModal");
     let customModalResolve = null;
 
@@ -782,7 +682,6 @@
             customModalResolve = resolve;
         });
     }
-
     document.getElementById("btnCloseCustomModal").addEventListener("click", () => { customModal.classList.remove("show"); if(customModalResolve) customModalResolve(null); });
     document.getElementById("btnCancelCustomModal").addEventListener("click", () => { customModal.classList.remove("show"); if(customModalResolve) customModalResolve(null); });
     document.getElementById("btnConfirmCustomModal").addEventListener("click", () => {
@@ -791,7 +690,6 @@
         if(customModalResolve) customModalResolve(val);
     });
 
-    // 6. FIREBASE & STATE
     const firebaseConfig = {
         apiKey: "AIzaSyB8WvfnEI-s9hdUpMvDSulzD5_BfJtAE48",
         authDomain: "quan-li-chi-tieu-e82b1.firebaseapp.com",
@@ -800,25 +698,16 @@
         messagingSenderId: "905488417584",
         appId: "1:905488417584:web:323d109f25145ad6bc3ef5"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let transactions = [];
-    let debts = [];
-    let budgets = [];
-    let savings = [];
-    let recurringRules = [];
+    let transactions = JSON.parse(safeStorage.getItem("cache_tx")) || [];
+    let debts = JSON.parse(safeStorage.getItem("cache_debts")) || [];
+    let budgets = JSON.parse(safeStorage.getItem("cache_budgets")) || [];
+    let savings = JSON.parse(safeStorage.getItem("cache_savings")) || [];
+    let recurringRules = JSON.parse(safeStorage.getItem("cache_recurring")) || [];
     let expenseChart = null;
     let selectedGlobalMonth = "all";
-
-    try {
-        transactions = JSON.parse(safeStorage.getItem("cache_tx")) || [];
-        debts = JSON.parse(safeStorage.getItem("cache_debts")) || [];
-        budgets = JSON.parse(safeStorage.getItem("cache_budgets")) || [];
-        savings = JSON.parse(safeStorage.getItem("cache_savings")) || [];
-        recurringRules = JSON.parse(safeStorage.getItem("cache_recurring")) || [];
-    } catch(e) {}
 
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("date").value = today;
@@ -835,7 +724,6 @@
         updateChart();
     }
 
-    // DROP-DOWN NAVIGATORS
     function setupDropdownNav(selectId) {
         const selectEl = document.getElementById(selectId);
         selectEl.addEventListener("change", (e) => {
@@ -858,14 +746,12 @@
         } catch(e) {}
     }
 
-    // POPULATE GLOBAL MONTH SWITCHER DROPDOWN
     function updateGlobalMonthDropdown() {
         const select = document.getElementById("globalMonthSelect");
         const monthsSet = new Set();
         monthsSet.add("all");
         const currentYm = today.substring(0, 7);
         monthsSet.add(currentYm);
-
         transactions.forEach(t => { if (t.date) monthsSet.add(t.date.substring(0, 7)); });
         debts.forEach(d => { if (d.date) monthsSet.add(d.date.substring(0, 7)); });
 
@@ -875,7 +761,6 @@
             const [y, mth] = m.split("-");
             return `<option value="${m}" ${m === selectedGlobalMonth || (selectedGlobalMonth === "all" && m === currentYm && !document.getElementById("globalMonthSelect").value) ? 'selected' : ''}>Tháng ${mth}/${y}</option>`;
         }).join("");
-
         if (!selectedGlobalMonth || selectedGlobalMonth === "") selectedGlobalMonth = currentYm;
         select.value = selectedGlobalMonth;
     }
@@ -889,10 +774,7 @@
     const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     const formatDate = (d) => { if (!d) return ""; const parts = d.split("-"); return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : d; };
 
-    const categoryIcons = {
-        "Ăn uống": "🍜", "Đi lại": "🛵", "Mua sắm": "🛒", "Học tập": "📚",
-        "Giải trí": "🎮", "Hóa đơn": "🧾", "Lương": "💰", "Chuyển ví": "🔄", "Khác": "📦"
-    };
+    const categoryIcons = { "Ăn uống": "🍜", "Đi lại": "🛵", "Mua sắm": "🛒", "Học tập": "📚", "Giải trí": "🎮", "Hóa đơn": "🧾", "Lương": "💰", "Chuyển ví": "🔄", "Khác": "📦" };
     const walletLabels = { "cash": "💵 Tiền mặt", "bank": "💳 Ngân hàng", "ewallet": "📱 Ví điện tử" };
 
     function showToast(message, type = "info") {
@@ -900,9 +782,7 @@
         const toast = document.createElement("div");
         toast.className = `toast toast-${type}`;
         let icon = "🔔";
-        if (type === "warning") icon = "⚠️";
-        if (type === "danger") icon = "🚨";
-        if (type === "success") icon = "✅";
+        if (type === "warning") icon = "⚠️"; if (type === "danger") icon = "🚨"; if (type === "success") icon = "✅";
         toast.innerHTML = `<span style="font-size:16px;">${icon}</span><div>${escapeHTML(message)}</div>`;
         container.appendChild(toast);
         setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 250); }, 3500);
@@ -914,22 +794,17 @@
         const dueMs = new Date(dueDateStr + "T00:00:00").getTime();
         const diffDays = Math.round((dueMs - todayMs) / (1000 * 60 * 60 * 24));
         if (diffDays < 0) return `<span class="badge-due badge-due-danger">🚨 Quá hạn ${Math.abs(diffDays)} ngày</span>`;
-        if (diffDays === 0) return `<span class="badge-due badge-due-warning">⏰ Đến hạn hôm nay</span>`;
-        if (diffDays <= 3) return `<span class="badge-due badge-due-warning">⏳ Còn ${diffDays} ngày</span>`;
-        return `<span class="badge-due badge-due-safe">📅 Hạn: ${formatDate(dueDateStr)}</span>`;
+        if (diffDays === 0) return `<span class="badge-due badge-due-warning">⏰ Hôm nay</span>`;
+        return `<span class="badge-due badge-due-safe">📅 ${formatDate(dueDateStr)}</span>`;
     }
 
     async function loadAllData() {
         renderAllUI();
         if (!navigator.onLine) return;
         try {
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('VPN_TIMEOUT')), 8000));
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 8000));
             const fetchPromise = Promise.allSettled([
-                getDocs(collection(db, "transactions")),
-                getDocs(collection(db, "debts")),
-                getDocs(collection(db, "budgets")),
-                getDocs(collection(db, "savings")),
-                getDocs(collection(db, "recurring"))
+                getDocs(collection(db, "transactions")), getDocs(collection(db, "debts")), getDocs(collection(db, "budgets")), getDocs(collection(db, "savings")), getDocs(collection(db, "recurring"))
             ]);
             const results = await Promise.race([fetchPromise, timeoutPromise]);
             if (results[0].status === 'fulfilled') transactions = results[0].value.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -937,10 +812,9 @@
             if (results[2].status === 'fulfilled') budgets = results[2].value.docs.map(d => ({ id: d.id, ...d.data() }));
             if (results[3].status === 'fulfilled') savings = results[3].value.docs.map(d => ({ id: d.id, ...d.data() }));
             if (results[4].status === 'fulfilled') recurringRules = results[4].value.docs.map(d => ({ id: d.id, ...d.data() }));
-
             syncLocalCache();
             renderAllUI();
-        } catch (err) { console.warn("Offline cache active:", err.message); }
+        } catch (err) { console.warn("Offline cache active"); }
     }
 
     function renderAllUI() {
@@ -955,11 +829,9 @@
         updateChart();
     }
 
-    // AI-STYLE FINANCIAL INSIGHTS CARD
     function updateInsightsCard() {
         let income = 0, expense = 0;
         const targetMonth = selectedGlobalMonth === "all" ? today.substring(0, 7) : selectedGlobalMonth;
-
         transactions.forEach(t => {
             if (t.date && t.date.startsWith(targetMonth) && t.category !== "Chuyển ví") {
                 const amt = Number(t.amount) || 0;
@@ -967,47 +839,31 @@
                 if (t.type === "expense") expense += amt;
             }
         });
-
-        // Savings Rate formula: ((Income - Expenses) / Income) * 100
         let savingsRate = income > 0 ? Math.max(0, Math.round(((income - expense) / income) * 100)) : 0;
         document.getElementById("insightSavingsRate").textContent = `${savingsRate}%`;
 
-        // Average daily spend
         const [yr, mth] = targetMonth.split("-");
         const daysInMonth = new Date(yr, mth, 0).getDate();
-        const dailyAvg = Math.round(expense / daysInMonth);
-        document.getElementById("insightDailySpend").textContent = formatMoney(dailyAvg);
+        document.getElementById("insightDailySpend").textContent = formatMoney(Math.round(expense / daysInMonth));
 
         const badgeEl = document.getElementById("insightHealthBadge");
-        if (savingsRate >= 30) {
-            badgeEl.className = "health-badge health-good";
-            badgeEl.textContent = "🌟 Đang tiết kiệm rất tốt";
-        } else if (savingsRate >= 10) {
-            badgeEl.className = "health-badge health-warn";
-            badgeEl.textContent = "⚖️ Tài chính cân bằng";
-        } else {
-            badgeEl.className = "health-badge health-bad";
-            badgeEl.textContent = "⚠️ Cần cân đối chi tiêu";
-        }
+        if (savingsRate >= 30) { badgeEl.className = "health-badge health-good"; badgeEl.textContent = "🌟 Tiết kiệm tốt"; }
+        else if (savingsRate >= 10) { badgeEl.className = "health-badge health-warn"; badgeEl.textContent = "⚖️ Cân bằng"; }
+        else { badgeEl.className = "health-badge health-bad"; badgeEl.textContent = "⚠️ Cần cân đối"; }
     }
 
-    // IMAGE COMPRESSION TO BASE64
     function compressImageFile(file) {
         return new Promise((resolve) => {
             if (!file) { resolve(null); return; }
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
+                const img = new Image(); img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement("canvas");
-                    const MAX_WIDTH = 500;
-                    const scaleSize = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
-                    const ctx = canvas.getContext("2d");
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const MAX_WIDTH = 500; const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
+                    const ctx = canvas.getContext("2d"); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     resolve(canvas.toDataURL("image/jpeg", 0.7));
                 };
             };
@@ -1016,7 +872,6 @@
 
     async function addTransaction(customPayload = null) {
         let type, amount, category, wallet, date, note, receiptBase64 = null;
-
         if (customPayload) {
             type = customPayload.type; amount = customPayload.amount; category = customPayload.category; wallet = customPayload.wallet; date = today; note = customPayload.note;
         } else {
@@ -1027,30 +882,16 @@
             date = document.getElementById("date").value;
             note = document.getElementById("note").value.trim();
             const fileInput = document.getElementById("receiptFile");
-            if (fileInput.files[0]) {
-                receiptBase64 = await compressImageFile(fileInput.files[0]);
-            }
-            if (!amount || amount <= 0) return alert("Vui lòng nhập số tiền hợp lệ!");
-            if (!date) return alert("Vui lòng chọn ngày!");
+            if (fileInput.files[0]) receiptBase64 = await compressImageFile(fileInput.files[0]);
+            if (!amount || amount <= 0) return alert("Nhập số tiền hợp lệ!");
+            if (!date) return alert("Chọn ngày!");
         }
 
-        const tempId = `temp_${Date.now()}`;
-        const newTx = { id: tempId, type, amount, category, wallet, date, note: note || "Không có ghi chú", receipt: receiptBase64, createdAt: new Date().toISOString() };
-
-        transactions.unshift(newTx);
-        syncLocalCache();
-        renderAllUI();
-
-        if (!customPayload) {
-            document.getElementById("amount").value = "";
-            document.getElementById("note").value = "";
-            document.getElementById("receiptFile").value = "";
-        }
+        const newTx = { id: `temp_${Date.now()}`, type, amount, category, wallet, date, note: note || "Không có ghi chú", receipt: receiptBase64, createdAt: new Date().toISOString() };
+        transactions.unshift(newTx); syncLocalCache(); renderAllUI();
+        if (!customPayload) { document.getElementById("amount").value = ""; document.getElementById("note").value = ""; document.getElementById("receiptFile").value = ""; }
         showToast(`Đã thêm: ${formatMoney(amount)} (${category})`, "success");
-
-        addDoc(collection(db, "transactions"), { type, amount, category, wallet, date, note: newTx.note, receipt: receiptBase64, createdAt: newTx.createdAt }).then(docRef => {
-            newTx.id = docRef.id; syncLocalCache();
-        }).catch(() => {});
+        addDoc(collection(db, "transactions"), { type, amount, category, wallet, date, note: newTx.note, receipt: receiptBase64, createdAt: newTx.createdAt }).then(d => { newTx.id = d.id; syncLocalCache(); }).catch(() => {});
     }
 
     async function executeWalletTransfer() {
@@ -1058,38 +899,58 @@
         const toWallet = document.getElementById("transferTo").value;
         const amount = Number(document.getElementById("transferAmount").value);
         const note = document.getElementById("transferNote").value.trim();
-
-        if (fromWallet === toWallet) return alert("Ví nguồn và ví đích không được trùng nhau!");
-        if (!amount || amount <= 0) return alert("Vui lòng nhập số tiền chuyển hợp lệ!");
+        if (fromWallet === toWallet) return alert("Ví nguồn và đích trùng nhau!");
+        if (!amount || amount <= 0) return alert("Nhập số tiền hợp lệ!");
 
         const transferGroupId = `transfer_${Date.now()}`;
         const noteText = note ? `Chuyển ví: ${note}` : `Chuyển từ ${walletLabels[fromWallet]} sang ${walletLabels[toWallet]}`;
+        const outTx = { id: `temp_out_${Date.now()}`, type: "expense", amount, category: "Chuyển ví", wallet: fromWallet, date: today, note: `[Xuất] ${noteText}`, transferGroupId, createdAt: new Date().toISOString() };
+        const inTx = { id: `temp_in_${Date.now()}`, type: "income", amount, category: "Chuyển ví", wallet: toWallet, date: today, note: `[Nhập] ${noteText}`, transferGroupId, createdAt: new Date().toISOString() };
 
-        const outTx = { id: `temp_out_${Date.now()}`, type: "expense", amount, category: "Chuyển ví", wallet: fromWallet, date: today, note: `[Xuất ví] ${noteText}`, transferGroupId, createdAt: new Date().toISOString() };
-        const inTx = { id: `temp_in_${Date.now()}`, type: "income", amount, category: "Chuyển ví", wallet: toWallet, date: today, note: `[Nhập ví] ${noteText}`, transferGroupId, createdAt: new Date().toISOString() };
-
-        transactions.unshift(outTx, inTx);
-        syncLocalCache();
-        renderAllUI();
-
-        document.getElementById("transferAmount").value = "";
-        document.getElementById("transferNote").value = "";
+        transactions.unshift(outTx, inTx); syncLocalCache(); renderAllUI();
+        document.getElementById("transferAmount").value = ""; document.getElementById("transferNote").value = "";
         document.getElementById("transferModal").classList.remove("show");
         showToast(`Chuyển ${formatMoney(amount)} thành công!`, "success");
-
-        Promise.allSettled([
-            addDoc(collection(db, "transactions"), outTx),
-            addDoc(collection(db, "transactions"), inTx)
-        ]).catch(() => {});
+        Promise.allSettled([addDoc(collection(db, "transactions"), outTx), addDoc(collection(db, "transactions"), inTx)]).catch(() => {});
     }
 
     async function deleteTransaction(id) {
-        if (!confirm("Bạn có chắc muốn xóa giao dịch này?")) return;
+        if (!confirm("Xóa giao dịch này?")) return;
         transactions = transactions.filter(t => t.id !== id);
-        syncLocalCache();
-        renderAllUI();
-        showToast("Đã xóa giao dịch", "info");
+        syncLocalCache(); renderAllUI(); showToast("Đã xóa giao dịch", "info");
         if (!id.startsWith("temp_")) deleteDoc(doc(db, "transactions", id)).catch(() => {});
+    }
+
+    // SWIPE-TO-ACTION GESTURE HANDLER
+    function attachSwipeHandler(containerEl, onDeleteCallback) {
+        let startX = 0; let currentTranslate = 0; let animatingEl = null;
+
+        containerEl.addEventListener('touchstart', (e) => {
+            const swipeContainer = e.target.closest('.swipe-item-container');
+            if (!swipeContainer) return;
+            animatingEl = swipeContainer.querySelector('.transaction');
+            startX = e.touches[0].clientX;
+        }, { passive: true });
+
+        containerEl.addEventListener('touchmove', (e) => {
+            if (!animatingEl) return;
+            const currentX = e.touches[0].clientX;
+            const diff = currentX - startX;
+            if (diff < 0) { // Swipe left
+                currentTranslate = Math.max(diff, -90);
+                animatingEl.style.transform = `translateX(${currentTranslate}px)`;
+            }
+        }, { passive: true });
+
+        containerEl.addEventListener('touchend', () => {
+            if (!animatingEl) return;
+            if (currentTranslate < -45) {
+                animatingEl.style.transform = `translateX(-80px)`;
+            } else {
+                animatingEl.style.transform = `translateX(0px)`;
+            }
+            animatingEl = null; currentTranslate = 0;
+        }, { passive: true });
     }
 
     function renderTransactions() {
@@ -1098,55 +959,48 @@
         const filterWallet = document.getElementById("filterWallet").value;
         const filterCategory = document.getElementById("filterCategory").value;
         const rangePreset = document.getElementById("filterRangePreset").value;
-        const fromDate = document.getElementById("filterFromDate").value;
-        const toDate = document.getElementById("filterToDate").value;
 
         let filtered = [...transactions];
-        if (selectedGlobalMonth !== "all") {
-            filtered = filtered.filter(t => t.date && t.date.startsWith(selectedGlobalMonth));
-        }
-
+        if (selectedGlobalMonth !== "all") filtered = filtered.filter(t => t.date && t.date.startsWith(selectedGlobalMonth));
         if (keyword) filtered = filtered.filter(t => (t.category && t.category.toLowerCase().includes(keyword)) || (t.note && t.note.toLowerCase().includes(keyword)));
         if (filterWallet !== "all") filtered = filtered.filter(t => (t.wallet || "cash") === filterWallet);
         if (filterCategory !== "all") filtered = filtered.filter(t => t.category === filterCategory);
-
         if (rangePreset === "today") filtered = filtered.filter(t => t.date === today);
         else if (rangePreset === "this_month") filtered = filtered.filter(t => t.date && t.date.startsWith(today.substring(0, 7)));
-        else if (rangePreset === "custom") {
-            if (fromDate) filtered = filtered.filter(t => t.date >= fromDate);
-            if (toDate) filtered = filtered.filter(t => t.date <= toDate);
-        }
 
         filtered.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-        if (filtered.length === 0) {
-            list.innerHTML = `<div class="empty">Không tìm thấy giao dịch phù hợp</div>`;
-            return;
-        }
+        if (filtered.length === 0) { list.innerHTML = `<div class="empty">Không tìm thấy giao dịch</div>`; return; }
 
         let htmlBuffer = "";
         for (let i = 0; i < filtered.length; i++) {
             const t = filtered[i];
             const walletName = walletLabels[t.wallet] || "💵 Tiền mặt";
-            const receiptImg = t.receipt ? `<img src="${t.receipt}" class="receipt-preview" onclick="window.open('${t.receipt}')" title="Xem hóa đơn">` : '';
+            const receiptImg = t.receipt ? `<img src="${t.receipt}" class="receipt-preview" onclick="window.open('${t.receipt}')">` : '';
             htmlBuffer += `
-            <div class="transaction">
-                <div class="transaction-left">
-                    <div class="icon">${categoryIcons[t.category] || "📦"}</div>
-                    <div class="transaction-info">
-                        <h3>${escapeHTML(t.category)} <span class="wallet-tag">${walletName}</span></h3>
-                        <p>${escapeHTML(t.note)}</p>
-                        <p style="font-size:11px; color:var(--text-sub);">${formatDate(t.date)}</p>
-                    </div>
+            <div class="swipe-item-container">
+                <div class="swipe-actions-right">
+                    <button class="swipe-delete-trigger" data-action="delete-tx" data-id="${t.id}">Xóa</button>
                 </div>
-                <div class="transaction-right">
-                    ${receiptImg}
-                    <div class="amount ${t.type}">${t.type === "income" ? "+" : "-"}${formatMoney(t.amount)}</div>
-                    <button type="button" class="delete-btn" data-action="delete-tx" data-id="${t.id}">Xóa</button>
+                <div class="transaction">
+                    <div class="transaction-left">
+                        <div class="icon">${categoryIcons[t.category] || "📦"}</div>
+                        <div class="transaction-info">
+                            <h3>${escapeHTML(t.category)} <span class="wallet-tag">${walletName}</span></h3>
+                            <p>${escapeHTML(t.note)}</p>
+                            <p style="font-size:11px; color:var(--text-sub);">${formatDate(t.date)}</p>
+                        </div>
+                    </div>
+                    <div class="transaction-right">
+                        ${receiptImg}
+                        <div class="amount ${t.type}">${t.type === "income" ? "+" : "-"}${formatMoney(t.amount)}</div>
+                        <button type="button" class="delete-btn" data-action="delete-tx" data-id="${t.id}">Xóa</button>
+                    </div>
                 </div>
             </div>`;
         }
         list.innerHTML = htmlBuffer;
+        attachSwipeHandler(list);
     }
 
     async function addRecurringRule() {
@@ -1156,38 +1010,32 @@
         const category = document.getElementById("recCategory").value;
         const day = Number(document.getElementById("recDay").value);
         const note = document.getElementById("recNote").value.trim();
-
-        if (!amount || amount <= 0 || !day || day < 1 || day > 31) return alert("Vui lòng nhập số tiền và ngày (1 - 31) hợp lệ!");
-        const newRule = { id: `temp_r_${Date.now()}`, type, amount, wallet, category, day, note: note || "Giao dịch định kỳ", createdAt: new Date().toISOString() };
-        recurringRules.push(newRule);
-        syncLocalCache();
-        renderRecurringList();
-        showToast("Đã lưu quy tắc định kỳ", "success");
+        if (!amount || amount <= 0 || !day) return alert("Nhập số tiền và ngày hợp lệ!");
+        const newRule = { id: `temp_r_${Date.now()}`, type, amount, wallet, category, day, note: note || "Định kỳ", createdAt: new Date().toISOString() };
+        recurringRules.push(newRule); syncLocalCache(); renderRecurringList();
+        showToast("Đã lưu định kỳ", "success");
         addDoc(collection(db, "recurring"), newRule).then(d => { newRule.id = d.id; syncLocalCache(); }).catch(() => {});
     }
 
     async function deleteRecurringRule(id) {
-        if (!confirm("Hủy giao dịch định kỳ này?")) return;
+        if (!confirm("Hủy định kỳ này?")) return;
         recurringRules = recurringRules.filter(r => r.id !== id);
-        syncLocalCache();
-        renderRecurringList();
-        showToast("Đã hủy quy tắc định kỳ", "info");
+        syncLocalCache(); renderRecurringList(); showToast("Đã hủy định kỳ", "info");
         if (!id.startsWith("temp_")) deleteDoc(doc(db, "recurring", id)).catch(() => {});
     }
 
     function renderRecurringList() {
         const list = document.getElementById("recurringList");
-        if (recurringRules.length === 0) { list.innerHTML = `<div class="empty">Chưa có giao dịch định kỳ nào</div>`; return; }
+        if (recurringRules.length === 0) { list.innerHTML = `<div class="empty">Chưa có giao dịch định kỳ</div>`; return; }
         let htmlBuffer = "";
-        for (let i = 0; i < recurringRules.length; i++) {
-            const r = recurringRules[i];
+        recurringRules.forEach(r => {
             htmlBuffer += `
             <div class="transaction">
                 <div class="transaction-left">
                     <div class="icon" style="background:#ede9fe;">🔄</div>
                     <div class="transaction-info">
                         <h3>${escapeHTML(r.category)} <span style="font-size:11px; color:#8b5cf6;">(Ngày ${r.day})</span></h3>
-                        <p>${escapeHTML(r.note)} | Nguồn: ${walletLabels[r.wallet] || "Tiền mặt"}</p>
+                        <p>${escapeHTML(r.note)}</p>
                     </div>
                 </div>
                 <div class="transaction-right">
@@ -1195,7 +1043,7 @@
                     <button type="button" class="delete-btn" data-action="delete-rec" data-id="${r.id}">Hủy</button>
                 </div>
             </div>`;
-        }
+        });
         list.innerHTML = htmlBuffer;
     }
 
@@ -1206,88 +1054,74 @@
         const date = document.getElementById("debtDate").value;
         const dueDate = document.getElementById("debtDueDate").value;
         const note = document.getElementById("debtNote").value.trim();
-
-        if (!person || !amount || amount <= 0 || !date) return alert("Vui lòng nhập đầy đủ thông tin nợ!");
+        if (!person || !amount || !date) return alert("Nhập thông tin nợ hợp lệ!");
         const newDebt = { id: `temp_d_${Date.now()}`, type, person, amount, remainingAmount: amount, date, dueDate: dueDate || null, note: note || "", status: "pending", createdAt: new Date().toISOString() };
-        debts.unshift(newDebt);
-        syncLocalCache();
-        renderAllUI();
-        showToast(`Đã thêm ghi nợ: "${person}"`, "success");
+        debts.unshift(newDebt); syncLocalCache(); renderAllUI();
+        showToast(`Đã ghi nợ: "${person}"`, "success");
         addDoc(collection(db, "debts"), newDebt).then(d => { newDebt.id = d.id; syncLocalCache(); }).catch(() => {});
     }
 
     async function payDebtFull(id) {
-        if (!confirm("Xác nhận đã tất toán toàn bộ khoản nợ này?")) return;
+        if (!confirm("Xác nhận tất toán khoản nợ này?")) return;
         const d = debts.find(item => item.id === id);
         if (d) {
             d.status = "paid"; d.remainingAmount = 0; d.paidAt = new Date().toISOString();
-            syncLocalCache(); renderAllUI(); showToast("Đã tất toán toàn bộ!", "success");
+            syncLocalCache(); renderAllUI(); showToast("Đã tất toán!", "success");
             if (!id.startsWith("temp_")) updateDoc(doc(db, "debts", id), { status: "paid", remainingAmount: 0, paidAt: d.paidAt }).catch(() => {});
         }
     }
 
     async function payDebtPartial(id, currentRemaining) {
-        const input = await promptCustomModal("Trả một phần nợ", `Nhập số tiền trả bớt (Còn nợ: ${formatMoney(currentRemaining)}):`);
+        const input = await promptCustomModal("Trả một phần nợ", `Nhập số tiền trả bớt (Còn: ${formatMoney(currentRemaining)}):`);
         if (!input) return;
         const payAmount = Number(input);
-        if (isNaN(payAmount) || payAmount <= 0) return alert("Số tiền không hợp lệ!");
-        if (payAmount > currentRemaining) return alert("Số tiền trả vượt quá số nợ còn lại!");
-
+        if (isNaN(payAmount) || payAmount <= 0 || payAmount > currentRemaining) return alert("Số tiền không hợp lệ!");
         const d = debts.find(item => item.id === id);
         if (d) {
             d.remainingAmount = currentRemaining - payAmount;
-            d.updatedAt = new Date().toISOString();
             if (d.remainingAmount === 0) { d.status = "paid"; d.paidAt = new Date().toISOString(); }
             syncLocalCache(); renderAllUI();
-            showToast(`Đã trả bớt ${formatMoney(payAmount)}. Còn lại: ${formatMoney(d.remainingAmount)}`, "success");
+            showToast(`Đã trả bớt ${formatMoney(payAmount)}`, "success");
             if (!id.startsWith("temp_")) updateDoc(doc(db, "debts", id), { remainingAmount: d.remainingAmount, status: d.status, paidAt: d.paidAt || null }).catch(() => {});
         }
     }
 
     async function deleteDebt(id) {
-        if (!confirm("Xóa bản ghi nợ này?")) return;
+        if (!confirm("Xóa nợ này?")) return;
         debts = debts.filter(d => d.id !== id);
-        syncLocalCache(); renderAllUI(); showToast("Đã xóa khoản nợ", "info");
+        syncLocalCache(); renderAllUI(); showToast("Đã xóa", "info");
         if (!id.startsWith("temp_")) deleteDoc(doc(db, "debts", id)).catch(() => {});
     }
 
     function renderDebts() {
         const list = document.getElementById("debtList");
         let sorted = [...debts].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-        if (selectedGlobalMonth !== "all") {
-            sorted = sorted.filter(d => d.date && d.date.startsWith(selectedGlobalMonth));
-        }
-        if (sorted.length === { length: 0 }.length === 0 && sorted.length === 0) { list.innerHTML = `<div class="empty">Chưa có khoản nợ nào</div>`; return; }
+        if (selectedGlobalMonth !== "all") sorted = sorted.filter(d => d.date && d.date.startsWith(selectedGlobalMonth));
+        if (sorted.length === 0) { list.innerHTML = `<div class="empty">Chưa có khoản nợ nào</div>`; return; }
 
         let htmlBuffer = "";
-        for (let i = 0; i < sorted.length; i++) {
-            const d = sorted[i];
+        sorted.forEach(d => {
             const isPaid = d.status === "paid";
             const typeText = d.type === "borrow" ? "Đi vay" : "Cho mượn";
-            const typeBg = d.type === "borrow" ? "#dc2626" : "#16a34a";
             const remaining = d.remainingAmount !== undefined ? d.remainingAmount : d.amount;
-            const isPartial = !isPaid && remaining < d.amount;
-            const dueBadge = getDueDateBadge(d.dueDate, isPaid);
-
             htmlBuffer += `
             <div class="transaction" style="${isPaid ? 'opacity: 0.55;' : ''}">
                 <div class="transaction-left">
                     <div class="icon" style="background: ${isPaid ? '#e5e7eb' : '#fef3c7'};">🤝</div>
                     <div class="transaction-info">
-                        <h3>${escapeHTML(d.person)} <span style="font-size:9.5px; color:white; background:${typeBg}; padding:2px 5px; border-radius:4px;">${typeText}</span> ${dueBadge}</h3>
-                        <p>${escapeHTML(d.note)} | Ngày: ${formatDate(d.date)}</p>
-                        ${isPaid ? `<p style="color:#16a34a; font-weight:600; font-size:11px;">✔ Đã thanh toán</p>` : (isPartial ? `<p style="color:#d97706; font-weight:600; font-size:11px;">⏳ Còn: ${formatMoney(remaining)}</p>` : `<p style="color:#f59e0b; font-weight:600; font-size:11px;">⏳ Chưa trả</p>`)}
+                        <h3>${escapeHTML(d.person)} <span style="font-size:9.5px; color:white; background:${d.type === 'borrow' ? '#dc2626' : '#16a34a'}; padding:2px 5px; border-radius:4px;">${typeText}</span></h3>
+                        <p>${escapeHTML(d.note)} | Hạn: ${formatDate(d.dueDate)}</p>
                     </div>
                 </div>
                 <div class="transaction-right">
                     <div class="amount">${formatMoney(remaining)}</div>
                     <div style="display: flex; gap: 4px;">
-                        ${!isPaid ? `<button type="button" class="part-btn" data-action="part-debt" data-id="${d.id}" data-rem="${remaining}">Trả 1 phần</button><button type="button" class="pay-btn" data-action="pay-debt" data-id="${d.id}">Tất toán</button>` : ''}
+                        ${!isPaid ? `<button type="button" class="part-btn" data-action="part-debt" data-id="${d.id}" data-rem="${remaining}">Trả bớt</button><button type="button" class="pay-btn" data-action="pay-debt" data-id="${d.id}">Tất toán</button>` : ''}
                         <button type="button" class="delete-btn" data-action="delete-debt" data-id="${d.id}">Xóa</button>
                     </div>
                 </div>
             </div>`;
-        }
+        });
         list.innerHTML = htmlBuffer;
     }
 
@@ -1307,7 +1141,7 @@
     async function deleteBudget(category) {
         if (!confirm(`Xóa hạn mức "${category}"?`)) return;
         budgets = budgets.filter(b => b.category !== category);
-        syncLocalCache(); renderBudgets(); showToast("Đã xóa hạn mức", "info");
+        syncLocalCache(); renderBudgets(); showToast("Đã xóa", "info");
         deleteDoc(doc(db, "budgets", category)).catch(() => {});
     }
 
@@ -1326,13 +1160,11 @@
         budgets.forEach(b => {
             const spent = thisMonthExpense[b.category] || 0;
             const percent = Math.min(Math.round((spent / b.limit) * 100), 100);
-            let fillClass = "fill-green", statusText = `<span style="color:#16a34a;">${percent}%</span>`;
-            if (percent >= 100) { fillClass = "fill-red"; statusText = `<span style="color:#dc2626; font-weight:bold;">🚨 Vượt!</span>`; }
-            else if (percent >= 80) { fillClass = "fill-yellow"; statusText = `<span style="color:#b45309; font-weight:bold;">⚠️ ${percent}%</span>`; }
-
+            let fillClass = "fill-green";
+            if (percent >= 100) fillClass = "fill-red"; else if (percent >= 80) fillClass = "fill-yellow";
             htmlBuffer += `
             <div class="progress-box">
-                <div class="progress-header"><span>${categoryIcons[b.category] || "📦"} ${escapeHTML(b.category)}</span><span>${statusText}</span></div>
+                <div class="progress-header"><span>${categoryIcons[b.category] || "📦"} ${escapeHTML(b.category)}</span><span>${percent}%</span></div>
                 <div class="progress-meta"><span>Đã chi: <b>${formatMoney(spent)}</b></span><span>Hạn mức: <b>${formatMoney(b.limit)}</b></span></div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill ${fillClass}" style="width: ${percent}%;"></div></div>
                 <div style="text-align: right; margin-top: 6px;"><button type="button" class="delete-btn" data-action="delete-budget" data-cat="${escapeHTML(b.category)}">Xóa</button></div>
@@ -1346,7 +1178,7 @@
         const targetAmount = Number(document.getElementById("savingTarget").value);
         const currentAmount = Number(document.getElementById("savingInitial").value) || 0;
         const deadline = document.getElementById("savingDeadline").value;
-        if (!name || !targetAmount || targetAmount <= 0) return alert("Nhập tên và mục tiêu hợp lệ!");
+        if (!name || !targetAmount) return alert("Nhập tên và mục tiêu hợp lệ!");
         const newSaving = { id: `temp_s_${Date.now()}`, name, targetAmount, currentAmount, deadline: deadline || null, createdAt: new Date().toISOString() };
         savings.unshift(newSaving); syncLocalCache(); renderSavings();
         document.getElementById("savingName").value = ""; document.getElementById("savingTarget").value = ""; document.getElementById("savingInitial").value = "";
@@ -1362,8 +1194,7 @@
         const s = savings.find(item => item.id === id);
         if (s) {
             s.currentAmount = current + depositAmount;
-            syncLocalCache(); renderSavings();
-            showToast(`Đã tích lũy thêm ${formatMoney(depositAmount)}!`, "success");
+            syncLocalCache(); renderSavings(); showToast(`Đã nạp thêm ${formatMoney(depositAmount)}!`, "success");
             if (!id.startsWith("temp_")) updateDoc(doc(db, "savings", id), { currentAmount: s.currentAmount }).catch(() => {});
         }
     }
@@ -1371,7 +1202,7 @@
     async function deleteSavingsTarget(id) {
         if (!confirm("Xóa mục tiêu này?")) return;
         savings = savings.filter(s => s.id !== id);
-        syncLocalCache(); renderSavings(); showToast("Đã xóa mục tiêu", "info");
+        syncLocalCache(); renderSavings(); showToast("Đã xóa", "info");
         if (!id.startsWith("temp_")) deleteDoc(doc(db, "savings", id)).catch(() => {});
     }
 
@@ -1383,10 +1214,9 @@
             const current = Number(s.currentAmount) || 0;
             const target = Number(s.targetAmount) || 1;
             const percent = Math.min(Math.round((current / target) * 100), 100);
-            const isCompleted = current >= target;
             htmlBuffer += `
-            <div class="progress-box" style="${isCompleted ? 'border-color: #10b981;' : ''}">
-                <div class="progress-header"><span>🎯 ${escapeHTML(s.name)} ${isCompleted ? '🎉 <b>(ĐÃ ĐẠT)</b>' : ''}</span><span>${percent}%</span></div>
+            <div class="progress-box">
+                <div class="progress-header"><span>🎯 ${escapeHTML(s.name)}</span><span>${percent}%</span></div>
                 <div class="progress-meta"><span>Tích lũy: <b style="color:#059669;">${formatMoney(current)}</b></span><span>Mục tiêu: <b>${formatMoney(target)}</b></span></div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width: ${percent}%;"></div></div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
@@ -1419,7 +1249,6 @@
             const amt = Number(t.amount) || 0;
             const w = t.wallet || "cash";
             const matchMonth = !targetMonth || (t.date && t.date.startsWith(targetMonth));
-
             if (matchMonth && t.category !== "Chuyển ví") {
                 if (t.type === "income") totalIncome += amt;
                 if (t.type === "expense") totalExpense += amt;
@@ -1480,7 +1309,7 @@
         });
     }
 
-    // EVENT BINDINGS
+    // EVENT LISTENERS
     document.getElementById("btn-theme-toggle").addEventListener("click", toggleTheme);
     document.getElementById("btn-export-csv").addEventListener("click", exportToCSV);
     document.getElementById("btn-print-statement").addEventListener("click", () => window.print());
