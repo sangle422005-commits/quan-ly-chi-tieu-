@@ -1,13 +1,11 @@
 {
   "name": "quan-ly-chi-tieu",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "sever.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node sever.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "firebase": "^10.7.1"
+    "express": "^4.18.2"
   }
 }
