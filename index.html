@@ -30,16 +30,17 @@
             --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
+        /* OLED Pure Black Dark Mode */
         [data-theme="dark"] {
-            --bg-body: #090d16;
+            --bg-body: #000000;
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
-            --card-bg: #131b2e;
-            --card-border: #1e293b;
-            --input-bg: #0b1120;
-            --input-border: #334155;
-            --icon-bg: #1e293b;
-            --box-bg: #0b1120;
+            --card-bg: #121212;
+            --card-border: #222222;
+            --input-bg: #0a0a0a;
+            --input-border: #333333;
+            --icon-bg: #1e1e1e;
+            --box-bg: #0a0a0a;
             --tab-active: #38bdf8;
         }
 
@@ -123,6 +124,8 @@
         .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: var(--text-sub); }
         input, select { width: 100%; padding: 12px 16px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); border-radius: 10px; outline: none; font-size: 14px; font-weight: 500; min-height: 46px; }
         
+        .shorthand-hint { font-size: 11px; color: var(--text-sub); margin-top: 3px; display: block; }
+
         .radio-group { display: flex; gap: 10px; }
         .radio-option { flex: 1; }
         .radio-option input { display: none; }
@@ -143,51 +146,47 @@
         .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
         .filter-row input, .filter-row select { flex: 1 1 130px; padding: 9px 12px; font-size: 13px; min-height: 42px; }
 
-        .swipe-item-container { position: relative; overflow: hidden; border-bottom: 1px solid var(--card-border); border-radius: 10px; margin-bottom: 6px; background: #dc2626; }
-        .swipe-item-container:last-child { border-bottom: none; }
-        .swipe-actions-right { position: absolute; top: 0; right: 0; bottom: 0; display: flex; align-items: center; z-index: 1; background: #dc2626; }
-        .swipe-delete-trigger { background: #dc2626; color: white; height: 100%; padding: 0 20px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; cursor: pointer; border: none; }
-
-        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--card-bg); position: relative; z-index: 2; transition: transform 0.2s ease; width: 100%; border-radius: 10px; gap: 12px; }
+        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--card-bg); position: relative; z-index: 2; width: 100%; border-radius: 10px; gap: 12px; border-bottom: 1px solid var(--card-border); }
+        .transaction:last-child { border-bottom: none; }
         .transaction-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
         .icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--icon-bg); font-size: 17px; flex-shrink: 0; }
-        .transaction-info { min-width: 0; flex: 1; }
+        .transaction-info { min-width: 0; flex: 1; padding-right: 6px; }
         .transaction-info h3 { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; color: var(--text-main); word-break: break-word; display: flex; align-items: center; gap: 6px; }
         .transaction-info p { color: var(--text-sub); font-size: 11.5px; word-break: break-word; }
-        .transaction-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+        .transaction-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .amount { font-weight: 700; font-size: 13.5px; white-space: nowrap; text-align: right; }
         .amount.expense { color: #dc2626; }
         .amount.income { color: #16a34a; }
         
-        /* Desktop Delete Button Style */
-        .desktop-delete-btn { background: #fee2e2; color: #dc2626; padding: 6px 12px; font-size: 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
-        .desktop-delete-btn:hover { background: #fecaca; }
+        /* Universal Delete Button */
+        .delete-btn { background: #fee2e2; color: #dc2626; padding: 6px 12px; font-size: 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; }
+        .delete-btn:hover { background: #fecaca; }
 
         .pay-btn { background: #dcfce7; color: #16a34a; padding: 6px 12px; font-size: 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; }
         .part-btn { background: #fef3c7; color: #b45309; padding: 6px 12px; font-size: 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; }
         .deposit-btn { background: #ecfdf5; color: #059669; padding: 6px 12px; font-size: 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; }
-        .empty { text-align: center; color: var(--text-sub); padding: 30px; font-size: 13.5px; }
+        .empty { text-align: center; color: var(--text-sub); padding: 25px; font-size: 13px; }
 
         /* PROGRESS BARS */
-        .progress-box { margin-bottom: 14px; padding: 14px; border: 1px solid var(--card-border); border-radius: 14px; background: var(--box-bg); }
-        .progress-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
-        .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-sub); margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
-        .progress-bar-bg { height: 9px; background: var(--card-border); border-radius: 5px; overflow: hidden; width: 100%; }
-        .progress-bar-fill { height: 100%; transition: width 0.35s var(--ease-standard); border-radius: 5px; }
+        .progress-box { margin-bottom: 12px; padding: 12px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--box-bg); }
+        .progress-header { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; margin-bottom: 5px; flex-wrap: wrap; gap: 4px; }
+        .progress-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-sub); margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
+        .progress-bar-bg { height: 8px; background: var(--card-border); border-radius: 4px; overflow: hidden; width: 100%; }
+        .progress-bar-fill { height: 100%; transition: width 0.35s var(--ease-standard); border-radius: 4px; }
         .fill-green { background: #16a34a; }
         .fill-yellow { background: #eab308; }
         .fill-red { background: #dc2626; }
 
         /* BADGES */
-        .badge-due { font-size: 10.5px; padding: 2px 6px; border-radius: 5px; font-weight: 600; display: inline-block; }
+        .badge-due { font-size: 10px; padding: 2px 5px; border-radius: 4px; font-weight: 600; display: inline-block; }
         .badge-due-safe { background: #e0f2fe; color: #0284c7; }
         .badge-due-warning { background: #fef3c7; color: #b45309; }
         .badge-due-danger { background: #fee2e2; color: #dc2626; }
-        .wallet-tag { font-size: 10px; padding: 2px 6px; border-radius: 5px; background: var(--icon-bg); color: var(--text-sub); font-weight: 500; border: 1px solid var(--card-border); }
+        .wallet-tag { font-size: 9.5px; padding: 2px 5px; border-radius: 4px; background: var(--icon-bg); color: var(--text-sub); font-weight: 500; border: 1px solid var(--card-border); }
 
         /* TOAST */
-        .toast-container { position: fixed; top: 16px; right: 16px; left: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-        .toast { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 14px 18px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 12px; width: 100%; max-width: 420px; margin: 0 auto; pointer-events: auto; border-left: 4px solid #2563eb; font-size: 13px; }
+        .toast-container { position: fixed; top: 12px; right: 12px; left: 12px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+        .toast { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 12px 14px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 10px; width: 100%; max-width: 400px; margin: 0 auto; pointer-events: auto; border-left: 4px solid #2563eb; font-size: 12.5px; }
         .toast.toast-warning { border-left-color: #f59e0b; }
         .toast.toast-danger { border-left-color: #ef4444; }
         .toast.toast-success { border-left-color: #10b981; }
@@ -195,19 +194,19 @@
         /* MODALS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: flex-end; z-index: 10000; padding: 0; }
         .modal-overlay.show { display: flex; }
-        .modal-box { background: var(--card-bg); width: 100%; max-width: 480px; padding: 24px; border-radius: 20px 20px 0 0; border: 1px solid var(--card-border); box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--text-main); }
-        .modal-close { background: none; border: none; font-size: 24px; color: var(--text-sub); cursor: pointer; padding: 0; }
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+        .modal-box { background: var(--card-bg); width: 100%; max-width: 500px; padding: 22px 20px env(safe-area-inset-bottom, 22px) 20px; border-radius: 20px 20px 0 0; border: 1px solid var(--card-border); box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .modal-close { background: none; border: none; font-size: 22px; color: var(--text-sub); cursor: pointer; padding: 0; }
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 
         .install-guide { font-size: 13px; color: var(--text-main); margin-bottom: 15px; }
         .install-guide-step { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; line-height: 1.4; }
         .step-num { width: 22px; height: 22px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
 
-        .chart-container { position: relative; height: 260px; }
-        .chart-fallback-list { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; }
-        .chart-fallback-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .chart-container { position: relative; height: 240px; }
+        .chart-fallback-list { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
+        .chart-fallback-item { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; }
 
         @media (min-width: 1025px) {
             .dropdown-nav-group { display: none !important; }
@@ -217,12 +216,12 @@
         @media (max-width: 1024px) {
             .dropdown-nav-group { display: block !important; }
             .desktop-nav-tabs { display: none !important; }
-            .main-grid { grid-template-columns: 1fr; gap: 20px; } 
+            .main-grid { grid-template-columns: 1fr; gap: 16px; } 
         }
 
         @media (min-width: 600px) {
             .modal-overlay { align-items: center; padding: 20px; }
-            .modal-box { border-radius: 18px; padding: 28px; }
+            .modal-box { border-radius: 16px; padding: 24px; }
             .toast-container { left: auto; width: auto; }
         }
 
@@ -254,7 +253,7 @@
         </div>
         <div class="form-group">
             <label id="customModalLabel" for="customModalInput">Số tiền:</label>
-            <input type="number" id="customModalInput" placeholder="Nhập số tiền...">
+            <input type="text" id="customModalInput" placeholder="Nhập số tiền hoặc dùng k/m...">
         </div>
         <div class="modal-actions">
             <button type="button" style="background:#e2e8f0; color:#334155;" id="btnCancelCustomModal">Hủy</button>
@@ -303,7 +302,8 @@
         </div>
         <div class="form-group">
             <label for="transferAmount">Số tiền chuyển (₫)</label>
-            <input type="number" id="transferAmount" placeholder="Ví dụ: 500000" min="1000">
+            <input type="text" id="transferAmount" class="shorthand-input" placeholder="Ví dụ: 500k hoặc 2m" data-raw="">
+            <span class="shorthand-hint" id="hint-transferAmount">Gõ nhanh: 50k = 50.000 | 2m = 2.000.000</span>
         </div>
         <div class="form-group">
             <label for="transferNote">Ghi chú</label>
@@ -451,7 +451,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group"><label for="amount">Số tiền</label><input type="number" id="amount" placeholder="Ví dụ: 50000" min="0"></div>
+                    <div class="form-group">
+                        <label for="amount">Số tiền</label>
+                        <input type="text" id="amount" class="shorthand-input" placeholder="Ví dụ: 50k, 2m, 1.5tr..." data-raw="">
+                        <span class="shorthand-hint" id="hint-amount">Gõ nhanh: 50k = 50.000 | 2m = 2.000.000</span>
+                    </div>
                     <div class="form-group">
                         <label for="wallet">Nguồn tiền / Ví</label>
                         <select id="wallet">
@@ -499,7 +503,11 @@
                         </div>
                     </div>
                     <div class="form-group"><label for="debtPerson">Tên đối tác / Người vay</label><input type="text" id="debtPerson" placeholder="Ví dụ: Nguyễn Văn A"></div>
-                    <div class="form-group"><label for="debtAmount">Số tiền (₫)</label><input type="number" id="debtAmount" placeholder="Ví dụ: 500000" min="0"></div>
+                    <div class="form-group">
+                        <label for="debtAmount">Số tiền (₫)</label>
+                        <input type="text" id="debtAmount" class="shorthand-input" placeholder="Ví dụ: 500k, 2m..." data-raw="">
+                        <span class="shorthand-hint" id="hint-debtAmount">Gõ nhanh: 500k = 500.000 | 1m = 1.000.000</span>
+                    </div>
                     <div class="form-group"><label for="debtDate">Ngày ghi nợ</label><input type="date" id="debtDate"></div>
                     <div class="form-group"><label for="debtDueDate">Hạn chót trả nợ</label><input type="date" id="debtDueDate"></div>
                     <div class="form-group"><label for="debtNote">Ghi chú thêm</label><input type="text" id="debtNote" placeholder="Ví dụ: Hẹn cuối tháng trả..."></div>
@@ -521,7 +529,11 @@
                             <option value="Khác">📦 Khác</option>
                         </select>
                     </div>
-                    <div class="form-group"><label for="budgetLimit">Hạn mức chi tiêu tháng (₫)</label><input type="number" id="budgetLimit" placeholder="Ví dụ: 2000000" min="0"></div>
+                    <div class="form-group">
+                        <label for="budgetLimit">Hạn mức chi tiêu tháng (₫)</label>
+                        <input type="text" id="budgetLimit" class="shorthand-input" placeholder="Ví dụ: 2m, 5m..." data-raw="">
+                        <span class="shorthand-hint" id="hint-budgetLimit">Gõ nhanh: 2m = 2.000.000</span>
+                    </div>
                     <button type="button" class="btn-add" id="btn-set-budget" style="background:#4f46e5;">Lưu hạn mức</button>
                 </div>
 
@@ -529,8 +541,16 @@
                 <div class="tab-content" id="tab-form-saving">
                     <h2>🌱 Tạo Mục Tiêu Tiết Kiệm</h2>
                     <div class="form-group"><label for="savingName">Tên mục tiêu</label><input type="text" id="savingName" placeholder="Ví dụ: Mua Laptop..."></div>
-                    <div class="form-group"><label for="savingTarget">Số tiền mục tiêu (₫)</label><input type="number" id="savingTarget" placeholder="Ví dụ: 15000000" min="0"></div>
-                    <div class="form-group"><label for="savingInitial">Đã tích lũy sẵn (₫)</label><input type="number" id="savingInitial" placeholder="Ví dụ: 1000000" min="0"></div>
+                    <div class="form-group">
+                        <label for="savingTarget">Số tiền mục tiêu (₫)</label>
+                        <input type="text" id="savingTarget" class="shorthand-input" placeholder="Ví dụ: 15m..." data-raw="">
+                        <span class="shorthand-hint" id="hint-savingTarget">Gõ nhanh: 15m = 15.000.000</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="savingInitial">Đã tích lũy sẵn (₫)</label>
+                        <input type="text" id="savingInitial" class="shorthand-input" placeholder="Ví dụ: 1m..." data-raw="">
+                        <span class="shorthand-hint" id="hint-savingInitial">Gõ nhanh: 1m = 1.000.000</span>
+                    </div>
                     <div class="form-group"><label for="savingDeadline">Hạn chót đạt được</label><input type="date" id="savingDeadline"></div>
                     <button type="button" class="btn-savings" id="btn-add-saving">+ Tạo mục tiêu</button>
                 </div>
@@ -551,7 +571,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group"><label for="recAmount">Số tiền định kỳ (₫)</label><input type="number" id="recAmount" placeholder="Ví dụ: 3000000" min="0"></div>
+                    <div class="form-group">
+                        <label for="recAmount">Số tiền định kỳ (₫)</label>
+                        <input type="text" id="recAmount" class="shorthand-input" placeholder="Ví dụ: 3m..." data-raw="">
+                        <span class="shorthand-hint" id="hint-recAmount">Gõ nhanh: 3m = 3.000.000</span>
+                    </div>
                     <div class="form-group">
                         <label for="recWallet">Ví tiền</label>
                         <select id="recWallet">
@@ -708,6 +732,57 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
+    // SHORTHAND & CURRENCY PARSER HELPER
+    function parseShorthandNumber(inputStr) {
+        if (!inputStr) return 0;
+        let clean = String(inputStr).trim().toLowerCase().replace(/[,đ₫\s]/g, '');
+        let multiplier = 1;
+
+        if (clean.endsWith('k')) {
+            multiplier = 1000;
+            clean = clean.slice(0, -1);
+        } else if (clean.endsWith('m') || clean.endsWith('tr')) {
+            multiplier = 1000000;
+            clean = clean.endsWith('tr') ? clean.slice(0, -2) : clean.slice(0, -1);
+        } else if (clean.endsWith('b')) {
+            multiplier = 1000000000;
+            clean = clean.slice(0, -1);
+        }
+
+        const val = parseFloat(clean);
+        return isNaN(val) ? 0 : Math.round(val * multiplier);
+    }
+
+    function setupShorthandInputs() {
+        document.querySelectorAll('.shorthand-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const raw = parseShorthandNumber(e.target.value);
+                e.target.dataset.raw = raw;
+                if (raw > 0) {
+                    const hintId = `hint-${e.target.id}`;
+                    const hintEl = document.getElementById(hintId);
+                    if (hintEl) hintEl.textContent = `Hiểu là: ${new Intl.NumberFormat('vi-VN').format(raw)} ₫`;
+                }
+            });
+            input.addEventListener('blur', (e) => {
+                const raw = parseShorthandNumber(e.target.value);
+                if (raw > 0) {
+                    e.target.value = new Intl.NumberFormat('vi-VN').format(raw);
+                    e.target.dataset.raw = raw;
+                }
+            });
+        });
+    }
+
+    function getRawAmount(inputId) {
+        const el = document.getElementById(inputId);
+        if (!el) return 0;
+        if (el.dataset.raw !== undefined && el.dataset.raw !== "") {
+            return Number(el.dataset.raw);
+        }
+        return parseShorthandNumber(el.value);
+    }
+
     // ALWAYS-VISIBLE INSTALL BUTTON & MODAL ENGINE
     let deferredPrompt = null;
     const installBtn = document.getElementById("btn-install-app");
@@ -765,12 +840,8 @@
     installBtn.addEventListener("click", () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(choice => {
-                deferredPrompt = null;
-            });
-        } else {
-            openInstallModal();
-        }
+            deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+        } else { openInstallModal(); }
     });
 
     document.getElementById("btnCloseInstallModal").addEventListener("click", closeInstallModal);
@@ -778,10 +849,8 @@
     installActionBtn.addEventListener("click", () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(choice => { deferredPrompt = null; closeInstallModal(); });
-        } else {
-            closeInstallModal();
-        }
+            deferredPrompt.userChoice.then(() => { deferredPrompt = null; closeInstallModal(); });
+        } else { closeInstallModal(); }
     });
 
     const customModal = document.getElementById("customInputModal");
@@ -801,7 +870,7 @@
     document.getElementById("btnCloseCustomModal").addEventListener("click", () => { customModal.classList.remove("show"); if(customModalResolve) customModalResolve(null); });
     document.getElementById("btnCancelCustomModal").addEventListener("click", () => { customModal.classList.remove("show"); if(customModalResolve) customModalResolve(null); });
     document.getElementById("btnConfirmCustomModal").addEventListener("click", () => {
-        const val = document.getElementById("customModalInput").value;
+        const val = parseShorthandNumber(document.getElementById("customModalInput").value);
         customModal.classList.remove("show");
         if(customModalResolve) customModalResolve(val);
     });
@@ -1012,7 +1081,7 @@
             type = customPayload.type; amount = customPayload.amount; category = customPayload.category; wallet = customPayload.wallet; date = today; note = customPayload.note;
         } else {
             type = document.querySelector('input[name="type"]:checked').value;
-            amount = Number(document.getElementById("amount").value);
+            amount = getRawAmount('amount');
             category = document.getElementById("category").value;
             wallet = document.getElementById("wallet").value;
             date = document.getElementById("date").value;
@@ -1025,7 +1094,12 @@
 
         const newTx = { id: `temp_${Date.now()}`, type, amount, category, wallet, date, note: note || "Không có ghi chú", receipt: receiptBase64, createdAt: new Date().toISOString() };
         transactions.unshift(newTx); syncLocalCache(); renderAllUI();
-        if (!customPayload) { document.getElementById("amount").value = ""; document.getElementById("note").value = ""; document.getElementById("receiptFile").value = ""; }
+        if (!customPayload) { 
+            const amtInput = document.getElementById("amount");
+            amtInput.value = ""; amtInput.dataset.raw = "";
+            document.getElementById("note").value = ""; document.getElementById("receiptFile").value = ""; 
+            document.getElementById("hint-amount").textContent = "Gõ nhanh: 50k = 50.000 | 2m = 2.000.000";
+        }
         showToast(`Đã thêm: ${formatMoney(amount)} (${category})`, "success");
         addDoc(collection(db, "transactions"), { type, amount, category, wallet, date, note: newTx.note, receipt: receiptBase64, createdAt: newTx.createdAt }).then(d => { newTx.id = d.id; syncLocalCache(); }).catch(() => {});
     }
@@ -1033,7 +1107,7 @@
     async function executeWalletTransfer() {
         const fromWallet = document.getElementById("transferFrom").value;
         const toWallet = document.getElementById("transferTo").value;
-        const amount = Number(document.getElementById("transferAmount").value);
+        const amount = getRawAmount('transferAmount');
         const note = document.getElementById("transferNote").value.trim();
         if (fromWallet === toWallet) return alert("Ví nguồn và đích trùng nhau!");
         if (!amount || amount <= 0) return alert("Nhập số tiền hợp lệ!");
@@ -1044,7 +1118,9 @@
         const inTx = { id: `temp_in_${Date.now()}`, type: "income", amount, category: "Chuyển ví", wallet: toWallet, date: today, note: `[Nhập] ${noteText}`, transferGroupId, createdAt: new Date().toISOString() };
 
         transactions.unshift(outTx, inTx); syncLocalCache(); renderAllUI();
-        document.getElementById("transferAmount").value = ""; document.getElementById("transferNote").value = "";
+        const trAmountInput = document.getElementById("transferAmount");
+        trAmountInput.value = ""; trAmountInput.dataset.raw = "";
+        document.getElementById("transferNote").value = "";
         document.getElementById("transferModal").classList.remove("show");
         showToast(`Chuyển ${formatMoney(amount)} thành công!`, "success");
         Promise.allSettled([addDoc(collection(db, "transactions"), outTx), addDoc(collection(db, "transactions"), inTx)]).catch(() => {});
@@ -1055,28 +1131,6 @@
         transactions = transactions.filter(t => t.id !== id);
         syncLocalCache(); renderAllUI(); showToast("Đã xóa giao dịch", "info");
         if (!id.startsWith("temp_")) deleteDoc(doc(db, "transactions", id)).catch(() => {});
-    }
-
-    function attachSwipeHandler(containerEl) {
-        let startX = 0; let currentTranslate = 0; let animatingEl = null;
-        containerEl.addEventListener('touchstart', (e) => {
-            const swipeContainer = e.target.closest('.swipe-item-container');
-            if (!swipeContainer) return;
-            animatingEl = swipeContainer.querySelector('.transaction');
-            startX = e.touches[0].clientX;
-        }, { passive: true });
-        containerEl.addEventListener('touchmove', (e) => {
-            if (!animatingEl) return;
-            const currentX = e.touches[0].clientX;
-            const diff = currentX - startX;
-            if (diff < 0) { currentTranslate = Math.max(diff, -90); animatingEl.style.transform = `translateX(${currentTranslate}px)`; }
-        }, { passive: true });
-        containerEl.addEventListener('touchend', () => {
-            if (!animatingEl) return;
-            if (currentTranslate < -45) animatingEl.style.transform = `translateX(-80px)`;
-            else animatingEl.style.transform = `translateX(0px)`;
-            animatingEl = null; currentTranslate = 0;
-        }, { passive: true });
     }
 
     function renderTransactions() {
@@ -1104,34 +1158,28 @@
             const walletName = walletLabels[t.wallet] || "💵 Tiền mặt";
             const receiptImg = t.receipt ? `<img src="${t.receipt}" class="receipt-preview" onclick="window.open('${t.receipt}')">` : '';
             htmlBuffer += `
-            <div class="swipe-item-container">
-                <div class="swipe-actions-right">
-                    <button class="swipe-delete-trigger" data-action="delete-tx" data-id="${t.id}">Xóa</button>
+            <div class="transaction">
+                <div class="transaction-left">
+                    <div class="icon">${categoryIcons[t.category] || "📦"}</div>
+                    <div class="transaction-info">
+                        <h3>${escapeHTML(t.category)} <span class="wallet-tag">${walletName}</span></h3>
+                        <p>${escapeHTML(t.note)}</p>
+                        <p style="font-size:11px; color:var(--text-sub);">${formatDate(t.date)}</p>
+                    </div>
                 </div>
-                <div class="transaction">
-                    <div class="transaction-left">
-                        <div class="icon">${categoryIcons[t.category] || "📦"}</div>
-                        <div class="transaction-info">
-                            <h3>${escapeHTML(t.category)} <span class="wallet-tag">${walletName}</span></h3>
-                            <p>${escapeHTML(t.note)}</p>
-                            <p style="font-size:11px; color:var(--text-sub);">${formatDate(t.date)}</p>
-                        </div>
-                    </div>
-                    <div class="transaction-right">
-                        ${receiptImg}
-                        <div class="amount ${t.type}">${t.type === "income" ? "+" : "-"}${formatMoney(t.amount)}</div>
-                        <button type="button" class="desktop-delete-btn" data-action="delete-tx" data-id="${t.id}">Xóa</button>
-                    </div>
+                <div class="transaction-right">
+                    ${receiptImg}
+                    <div class="amount ${t.type}">${t.type === "income" ? "+" : "-"}${formatMoney(t.amount)}</div>
+                    <button type="button" class="delete-btn" data-action="delete-tx" data-id="${t.id}">Xóa</button>
                 </div>
             </div>`;
         }
         list.innerHTML = htmlBuffer;
-        attachSwipeHandler(list);
     }
 
     async function addRecurringRule() {
         const type = document.querySelector('input[name="recType"]:checked').value;
-        const amount = Number(document.getElementById("recAmount").value);
+        const amount = getRawAmount('recAmount');
         const wallet = document.getElementById("recWallet").value;
         const category = document.getElementById("recCategory").value;
         const day = Number(document.getElementById("recDay").value);
@@ -1166,7 +1214,7 @@
                 </div>
                 <div class="transaction-right">
                     <div class="amount ${r.type}">${r.type === "income" ? "+" : "-"}${formatMoney(r.amount)}</div>
-                    <button type="button" class="desktop-delete-btn" data-action="delete-rec" data-id="${r.id}">Xóa</button>
+                    <button type="button" class="delete-btn" data-action="delete-rec" data-id="${r.id}">Xóa</button>
                 </div>
             </div>`;
         });
@@ -1176,7 +1224,7 @@
     async function addDebt() {
         const type = document.querySelector('input[name="debtType"]:checked').value;
         const person = document.getElementById("debtPerson").value.trim();
-        const amount = Number(document.getElementById("debtAmount").value);
+        const amount = getRawAmount('debtAmount');
         const date = document.getElementById("debtDate").value;
         const dueDate = document.getElementById("debtDueDate").value;
         const note = document.getElementById("debtNote").value.trim();
@@ -1198,9 +1246,9 @@
     }
 
     async function payDebtPartial(id, currentRemaining) {
-        const input = await promptCustomModal("Trả một phần nợ", `Nhập số tiền trả bớt (Còn: ${formatMoney(currentRemaining)}):`);
-        if (!input) return;
-        const payAmount = Number(input);
+        const inputRaw = await promptCustomModal("Trả một phần nợ", `Nhập số tiền trả bớt (Còn: ${formatMoney(currentRemaining)}):`);
+        if (inputRaw === null || inputRaw === "") return;
+        const payAmount = Number(inputRaw);
         if (isNaN(payAmount) || payAmount <= 0 || payAmount > currentRemaining) return alert("Số tiền không hợp lệ!");
         const d = debts.find(item => item.id === id);
         if (d) {
@@ -1243,7 +1291,7 @@
                     <div class="amount">${formatMoney(remaining)}</div>
                     <div style="display: flex; gap: 4px;">
                         ${!isPaid ? `<button type="button" class="part-btn" data-action="part-debt" data-id="${d.id}" data-rem="${remaining}">Trả bớt</button><button type="button" class="pay-btn" data-action="pay-debt" data-id="${d.id}">Tất toán</button>` : ''}
-                        <button type="button" class="desktop-delete-btn" data-action="delete-debt" data-id="${d.id}">Xóa</button>
+                        <button type="button" class="delete-btn" data-action="delete-debt" data-id="${d.id}">Xóa</button>
                     </div>
                 </div>
             </div>`;
@@ -1253,13 +1301,14 @@
 
     async function setCategoryBudget() {
         const category = document.getElementById("budgetCategory").value;
-        const limit = Number(document.getElementById("budgetLimit").value);
+        const limit = getRawAmount('budgetLimit');
         if (!limit || limit <= 0) return alert("Nhập hạn mức hợp lệ!");
         const idx = budgets.findIndex(b => b.category === category);
         const bItem = { category, limit, updatedAt: new Date().toISOString() };
         if (idx >= 0) budgets[idx] = bItem; else budgets.push(bItem);
         syncLocalCache(); renderBudgets();
-        document.getElementById("budgetLimit").value = "";
+        const bLimitInput = document.getElementById("budgetLimit");
+        bLimitInput.value = ""; bLimitInput.dataset.raw = "";
         showToast(`Đã lưu hạn mức "${category}"`, "success");
         setDoc(doc(db, "budgets", category), bItem).catch(() => {});
     }
@@ -1293,7 +1342,7 @@
                 <div class="progress-header"><span>${categoryIcons[b.category] || "📦"} ${escapeHTML(b.category)}</span><span>${percent}%</span></div>
                 <div class="progress-meta"><span>Đã chi: <b>${formatMoney(spent)}</b></span><span>Hạn mức: <b>${formatMoney(b.limit)}</b></span></div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill ${fillClass}" style="width: ${percent}%;"></div></div>
-                <div style="text-align: right; margin-top: 6px;"><button type="button" class="desktop-delete-btn" data-action="delete-budget" data-cat="${escapeHTML(b.category)}">Xóa</button></div>
+                <div style="text-align: right; margin-top: 6px;"><button type="button" class="delete-btn" data-action="delete-budget" data-cat="${escapeHTML(b.category)}">Xóa</button></div>
             </div>`;
         });
         list.innerHTML = htmlBuffer;
@@ -1301,21 +1350,23 @@
 
     async function addSavingsTarget() {
         const name = document.getElementById("savingName").value.trim();
-        const targetAmount = Number(document.getElementById("savingTarget").value);
-        const currentAmount = Number(document.getElementById("savingInitial").value) || 0;
+        const targetAmount = getRawAmount('savingTarget');
+        const currentAmount = getRawAmount('savingInitial');
         const deadline = document.getElementById("savingDeadline").value;
         if (!name || !targetAmount) return alert("Nhập tên và mục tiêu hợp lệ!");
         const newSaving = { id: `temp_s_${Date.now()}`, name, targetAmount, currentAmount, deadline: deadline || null, createdAt: new Date().toISOString() };
         savings.unshift(newSaving); syncLocalCache(); renderSavings();
-        document.getElementById("savingName").value = ""; document.getElementById("savingTarget").value = ""; document.getElementById("savingInitial").value = "";
+        document.getElementById("savingName").value = ""; 
+        document.getElementById("savingTarget").value = ""; document.getElementById("savingTarget").dataset.raw = "";
+        document.getElementById("savingInitial").value = ""; document.getElementById("savingInitial").dataset.raw = "";
         showToast(`Đã tạo mục tiêu "${name}"`, "success");
         addDoc(collection(db, "savings"), newSaving).then(d => { newSaving.id = d.id; syncLocalCache(); }).catch(() => {});
     }
 
     async function depositToSavings(id, current, target) {
-        const input = await promptCustomModal("Nạp tiền tiết kiệm", `Nhập số tiền nạp thêm (Hiện có: ${formatMoney(current)} / Cần đạt: ${formatMoney(target)}):`);
-        if (!input) return;
-        const depositAmount = Number(input);
+        const inputRaw = await promptCustomModal("Nạp tiền tiết kiệm", `Nhập số tiền nạp thêm (Hiện có: ${formatMoney(current)} / Cần đạt: ${formatMoney(target)}):`);
+        if (inputRaw === null || inputRaw === "") return;
+        const depositAmount = Number(inputRaw);
         if (isNaN(depositAmount) || depositAmount <= 0) return alert("Số tiền không hợp lệ!");
         const s = savings.find(item => item.id === id);
         if (s) {
@@ -1347,7 +1398,7 @@
                 <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width: ${percent}%;"></div></div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
                     <span style="font-size:11px;">${s.deadline ? 'Hạn: ' + formatDate(s.deadline) : ''}</span>
-                    <div style="display: flex; gap: 4px;"><button type="button" class="deposit-btn" data-action="deposit-saving" data-id="${s.id}" data-curr="${current}" data-target="${target}">+ Nạp</button><button type="button" class="desktop-delete-btn" data-action="delete-saving" data-id="${s.id}">Xóa</button></div>
+                    <div style="display: flex; gap: 4px;"><button type="button" class="deposit-btn" data-action="deposit-saving" data-id="${s.id}" data-curr="${current}" data-target="${target}">+ Nạp</button><button type="button" class="delete-btn" data-action="delete-saving" data-id="${s.id}">Xóa</button></div>
                 </div>
             </div>`;
         });
@@ -1435,6 +1486,9 @@
         });
     }
 
+    // INITIALIZE SHORTHAND FORMATTERS
+    setupShorthandInputs();
+
     // EVENT LISTENERS
     document.getElementById("btn-theme-toggle").addEventListener("click", toggleTheme);
     document.getElementById("btn-export-csv").addEventListener("click", exportToCSV);
@@ -1477,7 +1531,7 @@
         renderTransactions();
     });
 
-    // Delegated actions for both mobile swipe triggers and desktop delete buttons
+    // Delegated actions for delete triggers
     document.addEventListener("click", (e) => {
         const deleteTxBtn = e.target.closest("button[data-action='delete-tx']");
         const deleteRecBtn = e.target.closest("button[data-action='delete-rec']");
