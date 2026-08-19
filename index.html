@@ -47,19 +47,19 @@
         html { scroll-behavior: smooth; }
         body { background: var(--bg-body); color: var(--text-main); line-height: 1.5; -webkit-font-smoothing: antialiased; touch-action: manipulation; padding-bottom: env(safe-area-inset-bottom, 20px); overflow-x: hidden; }
 
-        .container { width: 92%; max-width: 1240px; margin: 20px auto 40px auto; }
+        .container { width: 92%; max-width: 1280px; margin: 24px auto 48px auto; }
         
         /* HEADER */
-        .header { background: linear-gradient(135deg, #1e40af, #2563eb 60%, #3b82f6); color: white; padding: 22px 24px; border-radius: 18px; margin-bottom: 20px; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.25); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
-        .header h1 { font-size: clamp(20px, 4vw, 26px); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
-        .header p { opacity: 0.85; font-size: clamp(12px, 2.5vw, 13.5px); }
-        .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; width: 100%; justify-content: flex-start; }
+        .header { background: linear-gradient(135deg, #1e40af, #2563eb 60%, #3b82f6); color: white; padding: 24px 30px; border-radius: 20px; margin-bottom: 24px; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.25); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .header h1 { font-size: clamp(22px, 3.5vw, 28px); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .header p { opacity: 0.85; font-size: 14px; }
+        .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-        .badge-device, .net-status { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(255,255,255,0.22); color: #fff; display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; }
+        .badge-device, .net-status { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.22); color: #fff; display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; }
         .net-online { color: #86efac; }
         .net-offline { color: #fca5a5; }
 
-        .btn-header { color: white; border: none; padding: 8px 12px; border-radius: 9px; font-weight: 600; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; min-height: 38px; transition: transform 0.15s var(--ease-standard), opacity 0.15s var(--ease-standard); }
+        .btn-header { color: white; border: none; padding: 9px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; transition: transform 0.15s var(--ease-standard), opacity 0.15s var(--ease-standard); }
         .btn-install { background: #f59e0b; }
         .btn-theme { background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.25); }
         .btn-export { background: #10b981; }
@@ -68,17 +68,17 @@
         .btn-header:hover { opacity: 0.95; transform: translate3d(0, -1px, 0); }
 
         /* GLOBAL MONTH SELECTOR BAR */
-        .month-selector-bar { background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 18px; border-radius: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); flex-wrap: wrap; gap: 10px; }
-        .month-selector-bar label { font-size: 13px; font-weight: 700; color: var(--text-sub); }
-        .month-selector-bar select { max-width: 220px; padding: 8px 12px; font-size: 13.5px; font-weight: 700; border-radius: 10px; }
+        .month-selector-bar { background: var(--card-bg); border: 1px solid var(--card-border); padding: 14px 20px; border-radius: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); flex-wrap: wrap; gap: 12px; }
+        .month-selector-bar label { font-size: 13.5px; font-weight: 700; color: var(--text-sub); }
+        .month-selector-bar select { max-width: 240px; padding: 9px 14px; font-size: 14px; font-weight: 700; border-radius: 10px; }
 
         /* DASHBOARDS */
-        .dashboard, .wallets-dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
-        .debt-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .dashboard, .wallets-dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+        .debt-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
         
-        .card { background: var(--card-bg); padding: 16px 18px; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--card-border); position: relative; overflow: hidden; contain: layout style paint; }
-        .card-title { font-size: 11.5px; font-weight: 600; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.5px; }
-        .card-value { font-size: clamp(17px, 3.5vw, 22px); font-weight: 800; letter-spacing: -0.5px; word-break: break-word; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--card-border); position: relative; overflow: hidden; contain: layout style paint; }
+        .card-title { font-size: 12px; font-weight: 600; color: var(--text-sub); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-value { font-size: clamp(18px, 3.5vw, 24px); font-weight: 800; letter-spacing: -0.5px; word-break: break-word; }
         .income { color: #16a34a; }
         .expense { color: #dc2626; }
         .balance { color: #2563eb; }
@@ -86,133 +86,149 @@
         .debt-borrow { color: #d97706; }
 
         /* AI INSIGHTS CARD */
-        .insights-card { background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(16,185,129,0.06)); border: 1px solid var(--card-border); padding: 18px; border-radius: 14px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .insight-item h5 { font-size: 11px; text-transform: uppercase; color: var(--text-sub); margin-bottom: 4px; font-weight: 700; }
-        .insight-item p { font-size: 16px; font-weight: 800; color: var(--text-main); }
-        .health-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; }
+        .insights-card { background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(16,185,129,0.06)); border: 1px solid var(--card-border); padding: 20px; border-radius: 16px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .insight-item h5 { font-size: 11.5px; text-transform: uppercase; color: var(--text-sub); margin-bottom: 4px; font-weight: 700; }
+        .insight-item p { font-size: 17px; font-weight: 800; color: var(--text-main); }
+        .health-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; }
         .health-good { background: #dcfce7; color: #16a34a; }
         .health-warn { background: #fef3c7; color: #b45309; }
         .health-bad { background: #fee2e2; color: #dc2626; }
 
-        /* DROP-DOWN MENU */
-        .dropdown-nav-group { margin-bottom: 18px; }
+        /* NAVIGATION: DESKTOP TABS VS MOBILE DROPDOWN */
+        .desktop-nav-tabs { display: flex; gap: 6px; background: var(--box-bg); padding: 5px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--card-border); }
+        .desktop-tab-btn { flex: 1; padding: 10px 12px; border: none; background: transparent; color: var(--text-sub); font-size: 13px; font-weight: 600; border-radius: 9px; cursor: pointer; text-align: center; transition: all 0.2s ease; }
+        .desktop-tab-btn.active { background: var(--card-bg); color: var(--tab-active); box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--card-border); font-weight: 700; }
+
+        .dropdown-nav-group { display: none; margin-bottom: 18px; }
         .dropdown-nav-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
         .menu-dropdown { width: 100%; padding: 12px 14px; border: 2px solid var(--card-border); background: var(--input-bg); color: var(--text-main); border-radius: 12px; font-size: 14px; font-weight: 700; outline: none; cursor: pointer; }
 
-        /* MAIN GRID */
-        .main-grid { display: grid; grid-template-columns: 390px 1fr; gap: 20px; align-items: start; }
-        @media (min-width: 769px) and (max-width: 1200px) { .main-grid { grid-template-columns: 350px 1fr; } }
+        /* MAIN GRID CONFIGURATION (SEPARATED DESKTOP & MOBILE VIEWPORTS) */
+        .main-grid { display: grid; grid-template-columns: 420px 1fr; gap: 24px; align-items: start; }
         
-        .section { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--card-border); contain: layout style; }
-        .section h2 { margin-bottom: 16px; font-size: 17px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .section { background: var(--card-bg); padding: 24px; border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--card-border); contain: layout style; }
+        .section h2 { margin-bottom: 18px; font-size: 18px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 
         .tab-content { display: none; opacity: 0; transform: translate3d(0, 4px, 0); transition: opacity 0.2s var(--ease-standard), transform 0.2s var(--ease-standard); }
         .tab-content.active { display: block; opacity: 1; transform: translate3d(0, 0, 0); }
 
         /* QUICK CHIPS */
-        .chips-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-        .chip { background: var(--icon-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 6px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 600; cursor: pointer; min-height: 32px; display: inline-flex; align-items: center; }
+        .chips-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .chip { background: var(--icon-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; min-height: 32px; display: inline-flex; align-items: center; }
         .chip:hover { background: #2563eb; color: white; border-color: #2563eb; }
 
         /* FORMS */
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 12.5px; color: var(--text-sub); }
-        input, select { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); border-radius: 10px; outline: none; font-size: 14px; font-weight: 500; min-height: 44px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: var(--text-sub); }
+        input, select { width: 100%; padding: 12px 16px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); border-radius: 10px; outline: none; font-size: 14px; font-weight: 500; min-height: 46px; }
         
-        .radio-group { display: flex; gap: 8px; }
+        .radio-group { display: flex; gap: 10px; }
         .radio-option { flex: 1; }
         .radio-option input { display: none; }
-        .radio-option label { display: block; text-align: center; padding: 11px; border: 1px solid var(--input-border); border-radius: 10px; cursor: pointer; color: var(--text-main); font-size: 13px; font-weight: 600; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+        .radio-option label { display: block; text-align: center; padding: 12px; border: 1px solid var(--input-border); border-radius: 10px; cursor: pointer; color: var(--text-main); font-size: 13.5px; font-weight: 600; min-height: 46px; display: flex; align-items: center; justify-content: center; }
         .radio-option input:checked + label { background: #2563eb; color: white; border-color: #2563eb; }
         
-        button { border: none; cursor: pointer; border-radius: 10px; padding: 12px 18px; font-size: 13.5px; font-weight: 700; min-height: 44px; }
+        button { border: none; cursor: pointer; border-radius: 10px; padding: 12px 20px; font-size: 14px; font-weight: 700; min-height: 46px; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-add { width: 100%; background: #2563eb; color: white; }
         .btn-debt { background: #f59e0b; color: white; width: 100%; }
         .btn-savings { background: #10b981; color: white; width: 100%; }
         .btn-recurring { background: #8b5cf6; color: white; width: 100%; }
 
-        /* RECEIPT PREVIEW THUMBNAIL */
-        .receipt-preview { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 1px solid var(--card-border); cursor: pointer; }
+        .receipt-preview { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--card-border); cursor: pointer; }
 
-        /* FILTER & TRANSACTIONS WITH SWIPE-TO-ACTION WRAPPER */
-        .filter-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; background: var(--box-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--card-border); }
-        .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
-        .filter-row input, .filter-row select { flex: 1 1 120px; padding: 8px 10px; font-size: 12.5px; min-height: 40px; }
+        /* FILTER & TRANSACTIONS */
+        .filter-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; background: var(--box-bg); padding: 14px; border-radius: 14px; border: 1px solid var(--card-border); }
+        .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-row input, .filter-row select { flex: 1 1 130px; padding: 9px 12px; font-size: 13px; min-height: 42px; }
 
         .swipe-item-container { position: relative; overflow: hidden; border-bottom: 1px solid var(--card-border); }
         .swipe-item-container:last-child { border-bottom: none; }
-        
         .swipe-actions-right { position: absolute; top: 0; right: 0; bottom: 0; display: flex; align-items: center; z-index: 1; background: #fee2e2; }
         .swipe-delete-trigger { background: #dc2626; color: white; height: 100%; padding: 0 20px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; cursor: pointer; border: none; }
 
-        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; background: var(--card-bg); position: relative; z-index: 2; transition: transform 0.2s ease; width: 100%; }
-        .transaction-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-        .icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--icon-bg); font-size: 17px; flex-shrink: 0; }
+        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; background: var(--card-bg); position: relative; z-index: 2; transition: transform 0.2s ease; width: 100%; }
+        .transaction-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+        .icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--icon-bg); font-size: 18px; flex-shrink: 0; }
         .transaction-info { min-width: 0; flex: 1; }
-        .transaction-info h3 { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
-        .transaction-info p { color: var(--text-sub); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .transaction-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-        .amount { font-weight: 700; font-size: 13.5px; white-space: nowrap; text-align: right; }
+        .transaction-info h3 { font-size: 14.5px; font-weight: 600; margin-bottom: 3px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+        .transaction-info p { color: var(--text-sub); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .transaction-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .amount { font-weight: 700; font-size: 14.5px; white-space: nowrap; text-align: right; }
         .amount.expense { color: #dc2626; }
         .amount.income { color: #16a34a; }
         
-        .delete-btn { background: #fee2e2; color: #dc2626; padding: 6px 9px; font-size: 11px; border-radius: 6px; min-height: 32px; }
-        .pay-btn { background: #dcfce7; color: #16a34a; padding: 6px 9px; font-size: 11px; border-radius: 6px; min-height: 32px; }
-        .part-btn { background: #fef3c7; color: #b45309; padding: 6px 9px; font-size: 11px; border-radius: 6px; min-height: 32px; }
-        .deposit-btn { background: #ecfdf5; color: #059669; padding: 6px 9px; font-size: 11px; border-radius: 6px; min-height: 32px; }
-        .empty { text-align: center; color: var(--text-sub); padding: 25px; font-size: 13px; }
+        .delete-btn { background: #fee2e2; color: #dc2626; padding: 7px 10px; font-size: 12px; border-radius: 7px; min-height: 34px; }
+        .pay-btn { background: #dcfce7; color: #16a34a; padding: 7px 10px; font-size: 12px; border-radius: 7px; min-height: 34px; }
+        .part-btn { background: #fef3c7; color: #b45309; padding: 7px 10px; font-size: 12px; border-radius: 7px; min-height: 34px; }
+        .deposit-btn { background: #ecfdf5; color: #059669; padding: 7px 10px; font-size: 12px; border-radius: 7px; min-height: 34px; }
+        .empty { text-align: center; color: var(--text-sub); padding: 30px; font-size: 13.5px; }
 
         /* PROGRESS BARS */
-        .progress-box { margin-bottom: 12px; padding: 12px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--box-bg); }
-        .progress-header { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; margin-bottom: 5px; flex-wrap: wrap; gap: 4px; }
-        .progress-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-sub); margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
-        .progress-bar-bg { height: 8px; background: var(--card-border); border-radius: 4px; overflow: hidden; width: 100%; }
-        .progress-bar-fill { height: 100%; transition: width 0.35s var(--ease-standard); border-radius: 4px; }
+        .progress-box { margin-bottom: 14px; padding: 14px; border: 1px solid var(--card-border); border-radius: 14px; background: var(--box-bg); }
+        .progress-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+        .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-sub); margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+        .progress-bar-bg { height: 9px; background: var(--card-border); border-radius: 5px; overflow: hidden; width: 100%; }
+        .progress-bar-fill { height: 100%; transition: width 0.35s var(--ease-standard); border-radius: 5px; }
         .fill-green { background: #16a34a; }
         .fill-yellow { background: #eab308; }
         .fill-red { background: #dc2626; }
 
         /* BADGES */
-        .badge-due { font-size: 10px; padding: 2px 5px; border-radius: 4px; font-weight: 600; display: inline-block; }
+        .badge-due { font-size: 10.5px; padding: 2px 6px; border-radius: 5px; font-weight: 600; display: inline-block; }
         .badge-due-safe { background: #e0f2fe; color: #0284c7; }
         .badge-due-warning { background: #fef3c7; color: #b45309; }
         .badge-due-danger { background: #fee2e2; color: #dc2626; }
-        .wallet-tag { font-size: 9.5px; padding: 2px 5px; border-radius: 4px; background: var(--icon-bg); color: var(--text-sub); font-weight: 500; border: 1px solid var(--card-border); }
+        .wallet-tag { font-size: 10px; padding: 2px 6px; border-radius: 5px; background: var(--icon-bg); color: var(--text-sub); font-weight: 500; border: 1px solid var(--card-border); }
 
         /* TOAST */
-        .toast-container { position: fixed; top: 12px; right: 12px; left: 12px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
-        .toast { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 12px 14px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 10px; width: 100%; max-width: 400px; margin: 0 auto; pointer-events: auto; border-left: 4px solid #2563eb; font-size: 12.5px; }
+        .toast-container { position: fixed; top: 16px; right: 16px; left: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 14px 18px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 12px; width: 100%; max-width: 420px; margin: 0 auto; pointer-events: auto; border-left: 4px solid #2563eb; font-size: 13px; }
         .toast.toast-warning { border-left-color: #f59e0b; }
         .toast.toast-danger { border-left-color: #ef4444; }
         .toast.toast-success { border-left-color: #10b981; }
 
-        /* CUSTOM MODALS */
+        /* MODALS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: flex-end; z-index: 10000; padding: 0; }
         .modal-overlay.show { display: flex; }
-        .modal-box { background: var(--card-bg); width: 100%; max-width: 500px; padding: 22px 20px env(safe-area-inset-bottom, 22px) 20px; border-radius: 20px 20px 0 0; border: 1px solid var(--card-border); box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-        .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
-        .modal-close { background: none; border: none; font-size: 22px; color: var(--text-sub); cursor: pointer; padding: 0; }
-        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+        .modal-box { background: var(--card-bg); width: 100%; max-width: 480px; padding: 24px; border-radius: 20px 20px 0 0; border: 1px solid var(--card-border); box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--text-main); }
+        .modal-close { background: none; border: none; font-size: 24px; color: var(--text-sub); cursor: pointer; padding: 0; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
 
-        .chart-container { position: relative; height: 240px; }
-        .chart-fallback-list { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
-        .chart-fallback-item { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; }
+        .chart-container { position: relative; height: 260px; }
+        .chart-fallback-list { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; }
+        .chart-fallback-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+
+        /* RESPONSIVE LAYOUT OVERRIDES (PREVENTS DESKTOP & MOBILE CONFLICTS) */
+        @media (min-width: 1025px) {
+            /* Desktop view: Show clean horizontal tab buttons, hide mobile dropdowns */
+            .dropdown-nav-group { display: none !important; }
+            .desktop-nav-tabs { display: flex !important; }
+        }
+
+        @media (max-width: 1024px) {
+            /* Mobile & Tablet view: Show dropdown menus, hide desktop tabs */
+            .dropdown-nav-group { display: block !important; }
+            .desktop-nav-tabs { display: none !important; }
+            .main-grid { grid-template-columns: 1fr; gap: 20px; } 
+        }
 
         @media (min-width: 600px) {
             .modal-overlay { align-items: center; padding: 20px; }
-            .modal-box { border-radius: 16px; padding: 24px; }
+            .modal-box { border-radius: 18px; padding: 28px; }
             .toast-container { left: auto; width: auto; }
         }
-        @media (max-width: 960px) { .main-grid { grid-template-columns: 1fr; gap: 16px; } }
+
         @media (max-width: 768px) {
             .dashboard, .wallets-dashboard { grid-template-columns: repeat(2, 1fr); }
             .dashboard .card:last-child, .wallets-dashboard .card:last-child { grid-column: span 2; }
             .btn-header { flex: 1 1 calc(50% - 6px); justify-content: center; }
         }
+
         @media (max-width: 480px) {
-            .dashboard, .wallets-dashboard, .debt-dashboard, .insights-card { grid-template-columns: 1fr; gap: 8px; }
+            .dashboard, .wallets-dashboard, .debt-dashboard, .insights-card { grid-template-columns: 1fr; gap: 10px; }
             .dashboard .card:last-child, .wallets-dashboard .card:last-child { grid-column: span 1; }
             .insights-card { grid-template-columns: 1fr; }
             .btn-header { flex: 1 1 100%; }
@@ -318,7 +334,7 @@
     <!-- GLOBAL MONTH SWITCHER SELECTOR -->
     <div class="month-selector-bar">
         <label for="globalMonthSelect">📅 Kỳ Sao Kê Tháng:</label>
-        <select id="globalMonthSelect" class="menu-dropdown"></select>
+        <select id="globalMonthSelect" class="menu-dropdown" style="max-width:240px;"></select>
     </div>
 
     <!-- SMART FINANCIAL HEALTH AI-STYLE INSIGHTS CARD -->
@@ -385,6 +401,16 @@
         <!-- CỘT TRÁI: FORM NHẬP LIỆU -->
         <div>
             <div class="section">
+                <!-- DESKTOP TABS -->
+                <div class="desktop-nav-tabs" id="desktopFormTabs">
+                    <button class="desktop-tab-btn active" data-tab="tab-form-tx">➕ Giao Dịch</button>
+                    <button class="desktop-tab-btn" data-tab="tab-form-debt">🤝 Sổ Nợ</button>
+                    <button class="desktop-tab-btn" data-tab="tab-form-budget">🎯 Ngân Sách</button>
+                    <button class="desktop-tab-btn" data-tab="tab-form-saving">🌱 Tiết Kiệm</button>
+                    <button class="desktop-tab-btn" data-tab="tab-form-rec">🔄 Định Kỳ</button>
+                </div>
+
+                <!-- MOBILE/TABLET DROPDOWN -->
                 <div class="dropdown-nav-group">
                     <label for="formDropdownSelect">📂 Chức Năng Nhập Liệu</label>
                     <select id="formDropdownSelect" class="menu-dropdown">
@@ -549,7 +575,7 @@
             </div>
 
             <!-- BIỂU ĐỒ CHI TIÊU -->
-            <div class="section" style="margin-top: 16px;">
+            <div class="section" style="margin-top: 20px;">
                 <h2>📊 Phân Bổ Chi Tiêu</h2>
                 <div class="chart-container" id="chartWrapper"><canvas id="expenseChart"></canvas></div>
             </div>
@@ -558,6 +584,16 @@
         <!-- CỘT PHẢI: WORKSPACE & DANH SÁCH -->
         <div>
             <div class="section">
+                <!-- DESKTOP TABS -->
+                <div class="desktop-nav-tabs" id="desktopViewTabs">
+                    <button class="desktop-tab-btn active" data-tab="tab-view-tx">📋 Giao Dịch</button>
+                    <button class="desktop-tab-btn" data-tab="tab-view-debt">📒 Sổ Nợ</button>
+                    <button class="desktop-tab-btn" data-tab="tab-view-budget">📊 Hạn Mức</button>
+                    <button class="desktop-tab-btn" data-tab="tab-view-saving">🏆 Tiết Kiệm</button>
+                    <button class="desktop-tab-btn" data-tab="tab-view-rec">🔄 Định Kỳ</button>
+                </div>
+
+                <!-- MOBILE/TABLET DROPDOWN -->
                 <div class="dropdown-nav-group">
                     <label for="viewDropdownSelect">📂 Nội Dung Hiển Thị</label>
                     <select id="viewDropdownSelect" class="menu-dropdown">
@@ -632,7 +668,7 @@
     </div>
 </div>
 
-<!-- FIREBASE & OFFLINE CLIENT SCRIPT WITH SWIPE GESTURES -->
+<!-- FIREBASE & OFFLINE CLIENT SCRIPT -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
@@ -651,10 +687,10 @@
         const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         const ua = navigator.userAgent || "";
         const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform));
-        let deviceName = "💻 PC / Màn hình lớn";
-        if (width <= 480) deviceName = "📱 Điện thoại / Fold nhỏ";
-        else if (width > 480 && width <= 768) deviceName = "📱 Phablet / Lớn";
-        else if (width > 768 && width <= 1366 && isTouch) deviceName = "📟 Tablet / iPad Pro";
+        let deviceName = "💻 Desktop / Màn hình lớn";
+        if (width <= 480) deviceName = "📱 Điện thoại / Fold";
+        else if (width > 480 && width <= 768) deviceName = "📱 Phablet";
+        else if (width > 768 && width <= 1366 && isTouch) deviceName = "📟 Tablet / iPad";
         return { isIOS: isIOS || (width <= 1366 && /Macintosh/i.test(ua) && isTouch), deviceName };
     }
     document.getElementById("deviceBadge").textContent = detectDeviceEnvironment().deviceName;
@@ -667,7 +703,6 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-    // CUSTOM MODAL PROMPT REPLACEMENT
     const customModal = document.getElementById("customInputModal");
     let customModalResolve = null;
 
@@ -724,17 +759,38 @@
         updateChart();
     }
 
-    function setupDropdownNav(selectId) {
+    // DUAL NAVIGATION CONTROLLER (DESKTOP TABS & MOBILE DROPDOWNS SYNCHRONIZED)
+    function setupDualNavigation(tabsId, selectId) {
+        const tabsContainer = document.getElementById(tabsId);
         const selectEl = document.getElementById(selectId);
+
+        tabsContainer.addEventListener("click", (e) => {
+            const btn = e.target.closest(".desktop-tab-btn");
+            if (!btn) return;
+            tabsContainer.querySelectorAll(".desktop-tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            const targetId = btn.dataset.tab;
+            selectEl.value = targetId;
+
+            const parentSection = tabsContainer.closest(".section");
+            parentSection.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
+            document.getElementById(targetId).classList.add("active");
+        });
+
         selectEl.addEventListener("change", (e) => {
             const targetId = e.target.value;
+            tabsContainer.querySelectorAll(".desktop-tab-btn").forEach(b => {
+                if (b.dataset.tab === targetId) b.classList.add("active");
+                else b.classList.remove("active");
+            });
+
             const parentSection = selectEl.closest(".section");
             parentSection.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
             document.getElementById(targetId).classList.add("active");
         });
     }
-    setupDropdownNav("formDropdownSelect");
-    setupDropdownNav("viewDropdownSelect");
+    setupDualNavigation("desktopFormTabs", "formDropdownSelect");
+    setupDualNavigation("desktopViewTabs", "viewDropdownSelect");
 
     function syncLocalCache() {
         try {
@@ -921,34 +977,24 @@
         if (!id.startsWith("temp_")) deleteDoc(doc(db, "transactions", id)).catch(() => {});
     }
 
-    // SWIPE-TO-ACTION GESTURE HANDLER
-    function attachSwipeHandler(containerEl, onDeleteCallback) {
+    function attachSwipeHandler(containerEl) {
         let startX = 0; let currentTranslate = 0; let animatingEl = null;
-
         containerEl.addEventListener('touchstart', (e) => {
             const swipeContainer = e.target.closest('.swipe-item-container');
             if (!swipeContainer) return;
             animatingEl = swipeContainer.querySelector('.transaction');
             startX = e.touches[0].clientX;
         }, { passive: true });
-
         containerEl.addEventListener('touchmove', (e) => {
             if (!animatingEl) return;
             const currentX = e.touches[0].clientX;
             const diff = currentX - startX;
-            if (diff < 0) { // Swipe left
-                currentTranslate = Math.max(diff, -90);
-                animatingEl.style.transform = `translateX(${currentTranslate}px)`;
-            }
+            if (diff < 0) { currentTranslate = Math.max(diff, -90); animatingEl.style.transform = `translateX(${currentTranslate}px)`; }
         }, { passive: true });
-
         containerEl.addEventListener('touchend', () => {
             if (!animatingEl) return;
-            if (currentTranslate < -45) {
-                animatingEl.style.transform = `translateX(-80px)`;
-            } else {
-                animatingEl.style.transform = `translateX(0px)`;
-            }
+            if (currentTranslate < -45) animatingEl.style.transform = `translateX(-80px)`;
+            else animatingEl.style.transform = `translateX(0px)`;
             animatingEl = null; currentTranslate = 0;
         }, { passive: true });
     }
