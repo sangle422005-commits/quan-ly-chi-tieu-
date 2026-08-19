@@ -13,10 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="Chi Tiêu">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2454/2454282.png">
 
-    <!-- Preconnect for speed -->
     <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-
-    <!-- Chart.js with async graceful fallback -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" defer></script>
 
     <style>
@@ -110,7 +107,19 @@
             justify-content: flex-start;
         }
 
-        /* NETWORK / PRIVACY BADGE */
+        /* DEVICE & NETWORK BADGES */
+        .badge-device {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.22);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 8px;
+        }
         .net-status {
             font-size: 11px;
             font-weight: 700;
@@ -121,7 +130,7 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            margin-left: 8px;
+            margin-left: 4px;
         }
         .net-online { color: #86efac; }
         .net-offline { color: #fca5a5; }
@@ -149,6 +158,25 @@
         .btn-transfer { background: #ec4899; }
         .btn-header:hover { opacity: 0.95; transform: translate3d(0, -1px, 0); }
         .btn-header:active { transform: translate3d(0, 1px, 0); }
+
+        /* FLOATING INSTALL PROMPT BAR */
+        .mobile-install-banner {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 14px 18px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .mobile-install-banner.show { display: flex; }
+        .banner-left { display: flex; align-items: center; gap: 12px; }
+        .banner-icon { font-size: 26px; }
+        .banner-text h4 { font-size: 13.5px; font-weight: 700; color: var(--text-main); }
+        .banner-text p { font-size: 11.5px; color: var(--text-sub); }
 
         /* DASHBOARDS */
         .dashboard, .wallets-dashboard { 
@@ -248,6 +276,11 @@
             gap: 20px; 
             align-items: start; 
         }
+        /* Tablet & iPad Pro fluid grid adjustment */
+        @media (min-width: 769px) and (max-width: 1200px) {
+            .main-grid { grid-template-columns: 350px 1fr; }
+        }
+        
         .section { 
             background: var(--card-bg); 
             padding: 20px; 
@@ -523,9 +556,14 @@
         .modal-close { background: none; border: none; font-size: 22px; color: var(--text-sub); cursor: pointer; padding: 0; min-height: 30px; }
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 
+        /* INSTALL GUIDE STEPS */
+        .install-guide { font-size: 13px; color: var(--text-main); margin-bottom: 15px; }
+        .install-guide-step { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; line-height: 1.4; }
+        .step-num { width: 22px; height: 22px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+
         .chart-container { position: relative; height: 240px; }
 
-        /* CSS-ONLY CHART FALLBACK (When CDN/JS is blocked) */
+        /* CSS FALLBACK FOR CHARTS */
         .chart-fallback-list { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
         .chart-fallback-item { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; }
 
@@ -563,7 +601,7 @@
 
         @media print {
             body { background: white !important; color: black !important; font-size: 11pt; }
-            .header-actions, .tab-bar, .chips-container, .main-grid > div:first-child, .filter-container, .delete-btn, .pay-btn, .part-btn, .deposit-btn, .btn-header, .toast-container, .modal-overlay { display: none !important; }
+            .header-actions, .mobile-install-banner, .tab-bar, .chips-container, .main-grid > div:first-child, .filter-container, .delete-btn, .pay-btn, .part-btn, .deposit-btn, .btn-header, .toast-container, .modal-overlay { display: none !important; }
             .tab-content { display: block !important; }
             .main-grid { grid-template-columns: 1fr !important; }
             .container { width: 100% !important; margin: 0 !important; }
@@ -576,6 +614,21 @@
 <body>
 
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- DYNAMIC DEVICE INSTALL MODAL -->
+<div class="modal-overlay" id="installModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="installModalTitle">📲 Cài Đặt Ứng Dụng</h3>
+            <button class="modal-close" id="btnCloseInstallModal">&times;</button>
+        </div>
+        <div id="installModalBody" class="install-guide"></div>
+        <div class="modal-actions">
+            <button type="button" style="background:#e2e8f0; color:#334155;" id="btnCancelInstallModal">Đóng</button>
+            <button type="button" class="btn-install btn-header" id="btnActionInstallModal">Cài Đặt Ngay</button>
+        </div>
+    </div>
+</div>
 
 <!-- WALLET TRANSFER MODAL -->
 <div class="modal-overlay" id="transferModal">
@@ -621,6 +674,7 @@
         <div>
             <h1>
                 💰 Quản Lý Chi Tiêu
+                <span class="badge-device" id="deviceBadge">📱 Thiết bị</span>
                 <span class="net-status" id="netStatus"><span class="net-online">●</span> Online</span>
             </h1>
             <p>Theo dõi ví tiền, chi tiêu, ngân sách, tiết kiệm và quản lý nợ thông minh</p>
@@ -632,6 +686,18 @@
             <button id="btn-export-csv" class="btn-header btn-export">📥 Xuất CSV</button>
             <button id="btn-theme-toggle" class="btn-header btn-theme">🌓 Giao diện</button>
         </div>
+    </div>
+
+    <!-- SMART MOBILE INSTALL BANNER -->
+    <div class="mobile-install-banner" id="mobileInstallBanner">
+        <div class="banner-left">
+            <div class="banner-icon">📲</div>
+            <div class="banner-text">
+                <h4 id="bannerDeviceTitle">Cài đặt ứng dụng</h4>
+                <p id="bannerDeviceDesc">Trải nghiệm toàn màn hình mượt mà không thanh địa chỉ</p>
+            </div>
+        </div>
+        <button class="btn-header btn-install" id="btnBannerInstall" style="min-height:36px; padding:6px 12px;">Cài Đặt</button>
     </div>
 
     <!-- DASHBOARD TỔNG QUAN -->
@@ -839,7 +905,7 @@
                 </div>
             </div>
 
-            <!-- BIỂU ĐỒ CHI TIÊU HOẶC FALLBACK DANH MỤC -->
+            <!-- BIỂU ĐỒ CHI TIÊU HOẶC FALLBACK -->
             <div class="section" style="margin-top: 16px;">
                 <h2>📊 Phân Bổ Chi Tiêu</h2>
                 <div class="chart-container" id="chartWrapper">
@@ -924,7 +990,7 @@
     </div>
 </div>
 
-<!-- RESILIENT JAVASCRIPT & FIREBASE ENGINE -->
+<!-- FIREBASE DIRECT CLIENT SCRIPT WITH PRIVACY / VPN SAFE ENGINES -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
@@ -948,7 +1014,32 @@
         }
     };
 
-    // 2. NETWORK & VPN MONITORING
+    // 2. SCREEN-SIZE & TOUCH-BASED DEVICE RECOGNITION (VPN / DNS RESILIENT)
+    function detectDeviceEnvironment() {
+        const width = window.innerWidth;
+        const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        const ua = navigator.userAgent || "";
+        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform));
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+        let deviceName = "💻 PC / Màn hình lớn";
+        let isMobileDevice = false;
+
+        if (width <= 768 || (isTouch && width < 900 && !/Macintosh/i.test(ua))) {
+            deviceName = isIOS ? "📱 iPhone" : "📱 Điện thoại / Fold";
+            isMobileDevice = true;
+        } else if (width > 768 && width <= 1366 && isTouch) {
+            deviceName = "📟 Máy tính bảng / iPad Pro";
+            isMobileDevice = true; // Treats large tablets with touch friendly prompts
+        }
+
+        return { isIOS: isIOS || (width <= 1366 && /Macintosh/i.test(ua) && isTouch), isMobileDevice, isStandalone, deviceName };
+    }
+
+    const deviceEnv = detectDeviceEnvironment();
+    document.getElementById("deviceBadge").textContent = deviceEnv.deviceName;
+
+    // 3. NETWORK & VPN MONITORING
     const netStatusEl = document.getElementById("netStatus");
     function updateOnlineStatus() {
         if (navigator.onLine) {
@@ -961,11 +1052,24 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-    // 3. PWA INSTALLATION ENGINE
+    // 4. SMART INSTALL PROMPT & MODAL ENGINE
     let deferredPrompt = null;
     const installBtn = document.getElementById("btn-install-app");
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    if (isStandalone) installBtn.style.display = "none";
+    const mobileBanner = document.getElementById("mobileInstallBanner");
+    const installModal = document.getElementById("installModal");
+    const installTitle = document.getElementById("installModalTitle");
+    const installBody = document.getElementById("installModalBody");
+    const installActionBtn = document.getElementById("btnActionInstallModal");
+
+    if (deviceEnv.isStandalone) {
+        installBtn.style.display = "none";
+        mobileBanner.style.display = "none";
+    } else if (deviceEnv.isMobileDevice) {
+        mobileBanner.classList.add("show");
+        if (deviceEnv.isIOS) {
+            document.getElementById("bannerDeviceTitle").textContent = "Cài đặt ứng dụng trên iPad / iPhone";
+        }
+    }
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -982,26 +1086,106 @@
     window.addEventListener('appinstalled', () => {
         deferredPrompt = null;
         installBtn.style.display = "none";
+        mobileBanner.style.display = "none";
+        closeInstallModal();
         showToast("Ứng dụng đã cài đặt thành công!", "success");
     });
 
-    installBtn.addEventListener("click", async () => {
+    function openInstallModal() {
+        if (deviceEnv.isIOS) {
+            installTitle.textContent = "🍎 Hướng dẫn cài đặt trên iOS / iPadOS";
+            installBody.innerHTML = `
+                <div class="install-guide-step">
+                    <span class="step-num">1</span>
+                    <span>Nhấn vào biểu tượng <b>Chia sẻ (Share) ⎋</b> ở thanh công cụ dưới trình duyệt Safari.</span>
+                </div>
+                <div class="install-guide-step">
+                    <span class="step-num">2</span>
+                    <span>Cuộn xuống và chọn mục <b>'Thêm vào Màn hình chính' (Add to Home Screen) ➕</b>.</span>
+                </div>
+                <div class="install-guide-step">
+                    <span class="step-num">3</span>
+                    <span>Nhấn <b>'Thêm' (Add)</b> ở góc trên bên phải để hoàn tất cài đặt ứng dụng.</span>
+                </div>
+            `;
+            installActionBtn.textContent = "Đã hiểu";
+        } else if (deferredPrompt) {
+            installTitle.textContent = "📲 Cài đặt ứng dụng";
+            installBody.innerHTML = `
+                <p style="margin-bottom:10px;">Nhấn nút bên dưới để mở hộp thoại cài đặt ứng dụng tự động trên thiết bị của bạn.</p>
+                <p style="color:var(--text-sub); font-size:12px;">Ứng dụng sẽ hoạt động độc lập toàn màn hình và lưu trữ dữ liệu ngoại tuyến mượt mà.</p>
+            `;
+            installActionBtn.textContent = "Cài đặt ngay";
+        } else {
+            installTitle.textContent = "💻 Cài đặt trên máy tính / Trình duyệt";
+            installBody.innerHTML = `
+                <div class="install-guide-step">
+                    <span class="step-num">1</span>
+                    <span>Nhấn vào biểu tượng <b>Cài đặt (Install / ⊕)</b> trên thanh địa chỉ của trình duyệt.</span>
+                </div>
+                <div class="install-guide-step">
+                    <span class="step-num">2</span>
+                    <span>Hoặc mở menu <b>3 chấm ⋮</b> $\rightarrow$ chọn <b>'Cài đặt ứng dụng' (Install App)</b>.</span>
+                </div>
+            `;
+            installActionBtn.textContent = "Đã hiểu";
+        }
+
+        installModal.style.display = "flex";
+        requestAnimationFrame(() => installModal.classList.add("show"));
+    }
+
+    function closeInstallModal() {
+        installModal.classList.remove("show");
+        setTimeout(() => installModal.style.display = "none", 250);
+    }
+
+    installBtn.addEventListener("click", () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') installBtn.style.display = 'none';
-            deferredPrompt = null;
+            deferredPrompt.userChoice.then(choice => {
+                if (choice.outcome === 'accepted') installBtn.style.display = 'none';
+                deferredPrompt = null;
+            });
         } else {
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            if (isIOS) {
-                showToast("Nhấn nút Chia sẻ (Share) ⎋ rồi chọn 'Thêm vào MH chính'", "info");
-            } else {
-                showToast("Ứng dụng đã cài đặt hoặc hỗ trợ qua menu trình duyệt", "info");
-            }
+            openInstallModal();
         }
     });
 
-    // 4. FIREBASE INITIALIZATION
+    document.getElementById("btnBannerInstall").addEventListener("click", () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(choice => {
+                if (choice.outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                    mobileBanner.style.display = 'none';
+                }
+                deferredPrompt = null;
+            });
+        } else {
+            openInstallModal();
+        }
+    });
+
+    document.getElementById("btnCloseInstallModal").addEventListener("click", closeInstallModal);
+    document.getElementById("btnCancelInstallModal").addEventListener("click", closeInstallModal);
+    installActionBtn.addEventListener("click", () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(choice => {
+                if (choice.outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                    mobileBanner.style.display = 'none';
+                }
+                deferredPrompt = null;
+                closeInstallModal();
+            });
+        } else {
+            closeInstallModal();
+        }
+    });
+
+    // 5. FIREBASE INITIALIZATION
     const firebaseConfig = {
         apiKey: "AIzaSyB8WvfnEI-s9hdUpMvDSulzD5_BfJtAE48",
         authDomain: "quan-li-chi-tieu-e82b1.firebaseapp.com",
@@ -1014,7 +1198,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 5. CACHE-FIRST APPLICATION STATE
+    // 6. CACHE-FIRST STATE
     let transactions = [];
     let debts = [];
     let budgets = [];
@@ -1047,111 +1231,8 @@
     }
 
     // TAB CONTROLLER
-    function setupTabs(barId) {
-        const bar = document.getElementById(barId);
-        bar.addEventListener("click", (e) => {
-            const btn = e.target.closest(".tab-btn");
-            if (!btn || btn.classList.contains("active")) return;
-
-            requestAnimationFrame(() => {
-                bar.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
-
-                const targetId = btn.dataset.tab;
-                const parent = bar.parentElement;
-                parent.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
-                document.getElementById(targetId).classList.add("active");
-            });
-        });
-    }
     setupTabs("formTabBar");
     setupTabs("viewTabBar");
-
-    const formatMoney = (num) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(num) || 0);
-    const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    const formatDate = (d) => {
-        if (!d) return "";
-        const parts = d.split("-");
-        return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : d;
-    };
-
-    const categoryIcons = {
-        "Ăn uống": "🍜", "Đi lại": "🛵", "Mua sắm": "🛒", "Học tập": "📚",
-        "Giải trí": "🎮", "Hóa đơn": "🧾", "Lương": "💰", "Chuyển ví": "🔄", "Khác": "📦"
-    };
-
-    const walletLabels = {
-        "cash": "💵 Tiền mặt",
-        "bank": "💳 Ngân hàng",
-        "ewallet": "📱 Ví điện tử"
-    };
-
-    function showToast(message, type = "info") {
-        const container = document.getElementById("toastContainer");
-        const toast = document.createElement("div");
-        toast.className = `toast toast-${type}`;
-        
-        let icon = "🔔";
-        if (type === "warning") icon = "⚠️";
-        if (type === "danger") icon = "🚨";
-        if (type === "success") icon = "✅";
-
-        toast.innerHTML = `<span style="font-size:16px;">${icon}</span><div>${escapeHTML(message)}</div>`;
-        container.appendChild(toast);
-
-        setTimeout(() => {
-            requestAnimationFrame(() => {
-                toast.style.opacity = "0";
-                toast.style.transform = "translate3d(0, -10px, 0)";
-                setTimeout(() => toast.remove(), 250);
-            });
-        }, 3500);
-    }
-
-    function checkBillAndBudgetAlerts() {
-        const todayMs = new Date(today + "T00:00:00").getTime();
-        
-        debts.forEach(d => {
-            if (d.status !== "paid" && d.dueDate) {
-                const dueMs = new Date(d.dueDate + "T00:00:00").getTime();
-                const diffDays = Math.round((dueMs - todayMs) / (1000 * 60 * 60 * 24));
-
-                if (diffDays < 0) {
-                    showToast(`Khoản nợ với "${d.person}" đã QUÁ HẠN ${Math.abs(diffDays)} ngày!`, "danger");
-                } else if (diffDays === 0) {
-                    showToast(`Khoản nợ với "${d.person}" ĐẾN HẠN HÔM NAY!`, "warning");
-                }
-            }
-        });
-
-        const currentYearMonth = today.substring(0, 7);
-        const thisMonthExpense = {};
-        transactions.forEach(t => {
-            if (t.type === "expense" && t.date && t.date.startsWith(currentYearMonth) && t.category !== "Chuyển ví") {
-                thisMonthExpense[t.category] = (thisMonthExpense[t.category] || 0) + Number(t.amount);
-            }
-        });
-
-        budgets.forEach(b => {
-            const spent = thisMonthExpense[b.category] || 0;
-            const pct = Math.round((spent / b.limit) * 100);
-            if (pct >= 100) {
-                showToast(`Danh mục "${b.category}" đã VƯỢT ngân sách (${pct}%)!`, "danger");
-            }
-        });
-    }
-
-    function getDueDateBadge(dueDateStr, isPaid) {
-        if (!dueDateStr || isPaid) return "";
-        const todayMs = new Date(today + "T00:00:00").getTime();
-        const dueMs = new Date(dueDateStr + "T00:00:00").getTime();
-        const diffDays = Math.round((dueMs - todayMs) / (1000 * 60 * 60 * 24));
-
-        if (diffDays < 0) return `<span class="badge-due badge-due-danger">🚨 Quá hạn ${Math.abs(diffDays)} ngày</span>`;
-        if (diffDays === 0) return `<span class="badge-due badge-due-warning">⏰ Đến hạn hôm nay</span>`;
-        if (diffDays <= 3) return `<span class="badge-due badge-due-warning">⏳ Còn ${diffDays} ngày</span>`;
-        return `<span class="badge-due badge-due-safe">📅 Hạn: ${formatDate(dueDateStr)}</span>`;
-    }
 
     function syncLocalCache() {
         try {
@@ -1201,7 +1282,6 @@
         }
     }
 
-    // 6. SAFE ASYNC FIRESTORE LOADER WITH PROTECTIVE VPN TIMEOUT
     async function loadAllData() {
         requestAnimationFrame(() => {
             renderTransactions();
@@ -1873,7 +1953,6 @@
         document.getElementById("totalYouOwe").textContent = formatMoney(totalYouOwe);
     }
 
-    // 7. CHART ENGINE WITH GRACEFUL CSS FALLBACK IF BLOCKED
     function updateChart() {
         const catTotals = {};
         for (let i = 0; i < transactions.length; i++) {
@@ -1887,7 +1966,6 @@
         const data = Object.values(catTotals);
         const wrapper = document.getElementById("chartWrapper");
 
-        // If Chart.js CDN is blocked by protective browser/DNS, render CSS summary bars
         if (!window.Chart) {
             if (labels.length === 0) {
                 wrapper.innerHTML = `<div class="empty">Chưa có giao dịch chi tiêu</div>`;
@@ -1906,7 +1984,6 @@
             return;
         }
 
-        // Standard Chart.js rendering
         requestAnimationFrame(() => {
             if (!wrapper.querySelector('canvas')) {
                 wrapper.innerHTML = `<canvas id="expenseChart"></canvas>`;
@@ -1932,7 +2009,7 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    animation: { duration: 200 },
+                    animation: { duration: 200, easing: 'easeOutQuart' },
                     resizeDelay: 100,
                     plugins: { 
                         legend: { 
@@ -2041,7 +2118,6 @@
         if (delBtn) deleteSavingsTarget(delBtn.dataset.id);
     });
 
-    // Initial Load
     loadAllData();
 </script>
 
