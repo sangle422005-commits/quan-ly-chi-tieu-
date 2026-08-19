@@ -90,7 +90,7 @@
         /* AI INSIGHTS CARD */
         .insights-card { background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(16,185,129,0.06)); border: 1px solid var(--card-border); padding: 20px; border-radius: 16px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .insight-item h5 { font-size: 11.5px; text-transform: uppercase; color: var(--text-sub); margin-bottom: 4px; font-weight: 700; }
-        .insight-item p { font-size: 17px; font-weight: 800; color: var(--text-main); }
+        .insight-item p { font-size: 16px; font-weight: 800; color: var(--text-main); }
         .health-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; }
         .health-good { background: #dcfce7; color: #16a34a; }
         .health-warn { background: #fef3c7; color: #b45309; }
@@ -355,8 +355,8 @@
             <p id="insightDailySpend">0 ₫</p>
         </div>
         <div class="insight-item">
-            <h5>Trạng thái tài chính</h5>
-            <p><span class="health-badge health-good" id="insightHealthBadge">Đang tải...</span></p>
+            <h5>Chi tiêu theo thành viên (Tháng)</h5>
+            <p id="insightMemberSpend" style="font-size: 13px; font-weight: 700; margin-top: 4px;">Sang: 0 ₫ | Yến: 0 ₫</p>
         </div>
     </div>
 
@@ -668,6 +668,11 @@
                             </select>
                         </div>
                         <div class="filter-row">
+                            <select id="filterAuthor">
+                                <option value="all">👤 Tất cả thành viên</option>
+                                <option value="Sang">🧑 Chỉ Sang</option>
+                                <option value="Yến">👩 Chỉ Yến</option>
+                            </select>
                             <select id="filterRangePreset">
                                 <option value="all">Toàn bộ thời gian</option>
                                 <option value="today">Hôm nay</option>
@@ -1060,12 +1065,18 @@
 
     function updateInsightsCard() {
         let income = 0, expense = 0;
+        let sangSpend = 0, yenSpend = 0;
         const targetMonth = selectedGlobalMonth === "all" ? today.substring(0, 7) : selectedGlobalMonth;
+        
         transactions.forEach(t => {
             if (t.date && t.date.startsWith(targetMonth) && t.category !== "Chuyển ví") {
                 const amt = Number(t.amount) || 0;
                 if (t.type === "income") income += amt;
-                if (t.type === "expense") expense += amt;
+                if (t.type === "expense") {
+                    expense += amt;
+                    if (t.author === "Sang") sangSpend += amt;
+                    else if (t.author === "Yến") yenSpend += amt;
+                }
             }
         });
         let savingsRate = income > 0 ? Math.max(0, Math.round(((income - expense) / income) * 100)) : 0;
@@ -1074,6 +1085,7 @@
         const [yr, mth] = targetMonth.split("-");
         const daysInMonth = new Date(yr, mth, 0).getDate();
         document.getElementById("insightDailySpend").textContent = formatMoney(Math.round(expense / daysInMonth));
+        document.getElementById("insightMemberSpend").textContent = `Sang: ${formatMoney(sangSpend)} | Yến: ${formatMoney(yenSpend)}`;
 
         const badgeEl = document.getElementById("insightHealthBadge");
         if (savingsRate >= 30) { badgeEl.className = "health-badge health-good"; badgeEl.textContent = "🌟 Tiết kiệm tốt"; }
@@ -1176,6 +1188,7 @@
         const keyword = document.getElementById("searchKeyword").value.trim().toLowerCase();
         const filterWallet = document.getElementById("filterWallet").value;
         const filterCategory = document.getElementById("filterCategory").value;
+        const filterAuthor = document.getElementById("filterAuthor").value;
         const rangePreset = document.getElementById("filterRangePreset").value;
 
         let filtered = [...transactions];
@@ -1183,6 +1196,7 @@
         if (keyword) filtered = filtered.filter(t => (t.category && t.category.toLowerCase().includes(keyword)) || (t.note && t.note.toLowerCase().includes(keyword)));
         if (filterWallet !== "all") filtered = filtered.filter(t => (t.wallet || "cash") === filterWallet);
         if (filterCategory !== "all") filtered = filtered.filter(t => t.category === filterCategory);
+        if (filterAuthor !== "all") filtered = filtered.filter(t => t.author === filterAuthor);
         if (rangePreset === "today") filtered = filtered.filter(t => t.date === today);
         else if (rangePreset === "this_month") filtered = filtered.filter(t => t.date && t.date.startsWith(today.substring(0, 7)));
 
@@ -1551,13 +1565,14 @@
     document.querySelector(".chips-container").addEventListener("click", (e) => {
         const chip = e.target.closest("span[data-action='quick-chip']");
         if (!chip) return;
-        const currentAuthor = document.getElementById("author").value; // Lấy tên đang chọn trong form thay vì fix cứng Sang
+        const currentAuthor = document.getElementById("author").value;
         addTransaction({ type: chip.dataset.type, amount: Number(chip.dataset.amt), category: chip.dataset.cat, wallet: chip.dataset.wallet, note: chip.dataset.note, author: currentAuthor });
     });
 
     document.getElementById("searchKeyword").addEventListener("input", renderTransactions);
     document.getElementById("filterWallet").addEventListener("change", renderTransactions);
     document.getElementById("filterCategory").addEventListener("change", renderTransactions);
+    document.getElementById("filterAuthor").addEventListener("change", renderTransactions);
     document.getElementById("filterFromDate").addEventListener("change", renderTransactions);
     document.getElementById("filterToDate").addEventListener("change", renderTransactions);
     document.getElementById("filterRangePreset").addEventListener("change", (e) => {
@@ -1567,7 +1582,11 @@
         renderTransactions();
     });
     document.getElementById("btn-clear-filter").addEventListener("click", () => {
-        document.getElementById("searchKeyword").value = ""; document.getElementById("filterWallet").value = "all"; document.getElementById("filterCategory").value = "all"; document.getElementById("filterRangePreset").value = "this_month";
+        document.getElementById("searchKeyword").value = ""; 
+        document.getElementById("filterWallet").value = "all"; 
+        document.getElementById("filterCategory").value = "all"; 
+        document.getElementById("filterAuthor").value = "all";
+        document.getElementById("filterRangePreset").value = "this_month";
         renderTransactions();
     });
 
