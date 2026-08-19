@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Chi Tiêu & Nợ</title>
 
-    <!-- Chart.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
     <style>
@@ -41,7 +40,7 @@
         .radio-option label { display: block; text-align: center; padding: 11px; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; }
         .radio-option input:checked + label { background: #2563eb; color: white; border-color: #2563eb; }
         
-        button { border: none; cursor: pointer; border-radius: 8px; padding: 12px 18px; font-size: 14px; font-weight: bold; transition: background-color 0.2s, opacity 0.2s; }
+        button { border: none; cursor: pointer; border-radius: 8px; padding: 12px 18px; font-size: 14px; font-weight: bold; transition: opacity 0.2s; }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-add { width: 100%; background: #2563eb; color: white; }
         .btn-add:hover { background: #1d4ed8; }
@@ -62,13 +61,11 @@
         .amount.income { color: #16a34a; }
         
         .delete-btn { background: #fee2e2; color: #dc2626; padding: 7px 10px; font-size: 12px; }
-        .delete-btn:hover { background: #fca5a5; }
         .pay-btn { background: #dcfce7; color: #16a34a; padding: 7px 10px; font-size: 12px; }
-        .pay-btn:hover { background: #bbf7d0; }
         .empty { text-align: center; color: #9ca3af; padding: 30px; }
 
         /* CHART */
-        .chart-container { position: relative; height: 300px; width: 100%; }
+        .chart-container { position: relative; height: 300px; }
 
         @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
         @media (max-width: 650px) {
@@ -140,7 +137,7 @@
                 <button type="button" class="btn-add" id="btn-add-tx">+ Thêm giao dịch</button>
             </div>
 
-            <!-- FORM NỢ -->
+            <!-- FORM NỢ MỚI -->
             <div class="section" style="border: 2px solid #fef3c7;">
                 <h2>🤝 Quản lý Nợ</h2>
                 <div class="form-group">
@@ -202,75 +199,233 @@
     </div>
 </div>
 
-<script>
-    // State
-    const API_BASE = "/api";
-    let state = {
-        transactions: [],
-        debts: [],
-        chartInstance: null
+<!-- FIREBASE CLIENT-SIDE DIRECT INTEGRATION -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { 
+        getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyB8WvfnEI-s9hdUpMvDSulzD5_BfJtAE48",
+        authDomain: "quan-li-chi-tieu-e82b1.firebaseapp.com",
+        projectId: "quan-li-chi-tieu-e82b1",
+        storageBucket: "quan-li-chi-tieu-e82b1.firebasestorage.app",
+        messagingSenderId: "905488417584",
+        appId: "1:905488417584:web:323d109f25145ad6bc3ef5"
     };
 
-    // Category Icons
-    const categoryIcons = {
-        "Ăn uống": "🍜",
-        "Đi lại": "🛵",
-        "Mua sắm": "🛒",
-        "Học tập": "📚",
-        "Giải trí": "🎮",
-        "Hóa đơn": "🧾",
-        "Lương": "💰",
-        "Khác": "📦"
-    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    // Helper functions
-    const formatMoney = (val) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(val) || 0);
-    const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    const formatDate = (dateStr) => {
-        if (!dateStr) return "";
-        const parts = dateStr.split("-");
-        return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
-    };
+    let transactions = [];
+    let debts = [];
+    let expenseChart = null;
 
-    // Initialize Default Dates
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("date").value = today;
     document.getElementById("debtDate").value = today;
 
-    // ==========================================
-    // DATA SYNC & RENDERING
-    // ==========================================
-    async function syncData() {
+    const formatMoney = (num) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(num) || 0);
+    const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    const formatDate = (d) => {
+        if (!d) return "";
+        const parts = d.split("-");
+        return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : d;
+    };
+
+    const categoryIcons = {
+        "Ăn uống": "🍜", "Đi lại": "🛵", "Mua sắm": "🛒", "Học tập": "📚",
+        "Giải trí": "🎮", "Hóa đơn": "🧾", "Lương": "💰", "Khác": "📦"
+    };
+
+    async function loadAllData() {
         try {
-            const [txRes, debtRes] = await Promise.all([
-                fetch(`${API_BASE}/transactions`).then(r => r.json()),
-                fetch(`${API_BASE}/debts`).then(r => r.json())
+            const [txSnap, debtSnap] = await Promise.all([
+                getDocs(collection(db, "transactions")),
+                getDocs(collection(db, "debts"))
             ]);
 
-            state.transactions = txRes.success ? (txRes.data || []) : [];
-            state.debts = debtRes.success ? (debtRes.data || []) : [];
+            transactions = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            debts = debtSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-            renderAll();
+            renderTransactions();
+            renderDebts();
+            updateDashboard();
+            updateChart();
         } catch (err) {
-            console.error("Fetch Error:", err);
+            console.error("Firestore error:", err);
+            alert("Lỗi kết nối Firestore: " + err.message);
         }
     }
 
-    function renderAll() {
-        renderDashboard();
-        renderTransactions();
-        renderDebts();
-        renderChart();
+    async function addTransaction() {
+        const type = document.querySelector('input[name="type"]:checked').value;
+        const amount = Number(document.getElementById("amount").value);
+        const category = document.getElementById("category").value;
+        const date = document.getElementById("date").value;
+        const note = document.getElementById("note").value.trim();
+
+        if (!amount || amount <= 0) return alert("Vui lòng nhập số tiền hợp lệ!");
+        if (!date) return alert("Vui lòng chọn ngày!");
+
+        const btn = document.getElementById("btn-add-tx");
+        btn.disabled = true;
+
+        try {
+            await addDoc(collection(db, "transactions"), {
+                type, amount, category, date, note: note || "Không có ghi chú", createdAt: new Date().toISOString()
+            });
+            document.getElementById("amount").value = "";
+            document.getElementById("note").value = "";
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi thêm: " + err.message);
+        } finally {
+            btn.disabled = false;
+        }
     }
 
-    function renderDashboard() {
+    async function deleteTransaction(id) {
+        if (!confirm("Bạn có chắc muốn xóa giao dịch này?")) return;
+        try {
+            await deleteDoc(doc(db, "transactions", id));
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi xóa: " + err.message);
+        }
+    }
+
+    function renderTransactions() {
+        const list = document.getElementById("transactionList");
+        const filterDate = document.getElementById("filterDate").value;
+        const filterCategory = document.getElementById("filterCategory").value;
+
+        let filtered = [...transactions];
+        if (filterDate) filtered = filtered.filter(t => t.date === filterDate);
+        if (filterCategory !== "all") filtered = filtered.filter(t => t.category === filterCategory);
+
+        filtered.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        if (filtered.length === 0) {
+            list.innerHTML = `<div class="empty">Không tìm thấy giao dịch</div>`;
+            return;
+        }
+
+        list.innerHTML = filtered.map(t => `
+            <div class="transaction">
+                <div class="transaction-left">
+                    <div class="icon">${categoryIcons[t.category] || "📦"}</div>
+                    <div class="transaction-info">
+                        <h3>${escapeHTML(t.category)}</h3>
+                        <p>${escapeHTML(t.note)}</p>
+                        <p>${formatDate(t.date)}</p>
+                    </div>
+                </div>
+                <div class="transaction-right">
+                    <div class="amount ${t.type}">${t.type === "income" ? "+" : "-"}${formatMoney(t.amount)}</div>
+                    <button class="delete-btn" data-action="delete-tx" data-id="${t.id}">Xóa</button>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    async function addDebt() {
+        const type = document.querySelector('input[name="debtType"]:checked').value;
+        const person = document.getElementById("debtPerson").value.trim();
+        const amount = Number(document.getElementById("debtAmount").value);
+        const date = document.getElementById("debtDate").value;
+        const note = document.getElementById("debtNote").value.trim();
+
+        if (!person || !amount || amount <= 0 || !date) {
+            return alert("Vui lòng nhập đầy đủ Tên, Số tiền và Ngày hợp lệ!");
+        }
+
+        const btn = document.getElementById("btn-add-debt");
+        btn.disabled = true;
+
+        try {
+            await addDoc(collection(db, "debts"), {
+                type, person, amount, date, note: note || "Không có ghi chú", status: "pending", createdAt: new Date().toISOString()
+            });
+            document.getElementById("debtPerson").value = "";
+            document.getElementById("debtAmount").value = "";
+            document.getElementById("debtNote").value = "";
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi thêm nợ: " + err.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function payDebt(id) {
+        if (!confirm("Xác nhận đã thanh toán/nhận tiền khoản nợ này?")) return;
+        try {
+            await updateDoc(doc(db, "debts", id), { status: "paid", paidAt: new Date().toISOString() });
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi cập nhật: " + err.message);
+        }
+    }
+
+    async function deleteDebt(id) {
+        if (!confirm("Bạn có chắc muốn xóa bản ghi nợ này?")) return;
+        try {
+            await deleteDoc(doc(db, "debts", id));
+            await loadAllData();
+        } catch (err) {
+            alert("Lỗi xóa nợ: " + err.message);
+        }
+    }
+
+    function renderDebts() {
+        const list = document.getElementById("debtList");
+        let sorted = [...debts].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        if (sorted.length === 0) {
+            list.innerHTML = `<div class="empty">Chưa có khoản nợ nào</div>`;
+            return;
+        }
+
+        list.innerHTML = sorted.map(d => {
+            const isPaid = d.status === "paid";
+            const typeText = d.type === "borrow" ? "Đi vay" : "Cho mượn";
+            const typeBg = d.type === "borrow" ? "#dc2626" : "#16a34a";
+            
+            return `
+            <div class="transaction" style="${isPaid ? 'opacity: 0.5;' : ''}">
+                <div class="transaction-left">
+                    <div class="icon" style="background: ${isPaid ? '#e5e7eb' : '#fef3c7'};">🤝</div>
+                    <div class="transaction-info">
+                        <h3 style="display: flex; align-items: center;">
+                            ${escapeHTML(d.person)} 
+                            <span style="font-size: 10px; color: white; background: ${typeBg}; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">${typeText}</span>
+                        </h3>
+                        <p>${escapeHTML(d.note)} | Ngày tạo: ${formatDate(d.date)}</p>
+                        ${isPaid ? `<p style="color: #16a34a; font-weight: bold; margin-top:2px;">✔ Đã thanh toán</p>` : `<p style="color: #f59e0b; font-weight: bold; margin-top:2px;">⏳ Chưa thanh toán</p>`}
+                    </div>
+                </div>
+                <div class="transaction-right">
+                    <div class="amount" style="color: #374151;">${formatMoney(d.amount)}</div>
+                    <div style="display: flex; gap: 5px;">
+                        ${!isPaid ? `<button type="button" class="pay-btn" data-action="pay-debt" data-id="${d.id}">Đã trả</button>` : ''}
+                        <button type="button" class="delete-btn" data-action="delete-debt" data-id="${d.id}">Xóa</button>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join("");
+    }
+
+    function updateDashboard() {
         let totalIncome = 0;
         let totalExpense = 0;
 
-        state.transactions.forEach(t => {
-            const amount = Number(t.amount) || 0;
-            if (t.type === "income") totalIncome += amount;
-            if (t.type === "expense") totalExpense += amount;
+        transactions.forEach(t => {
+            const amt = Number(t.amount) || 0;
+            if (t.type === "income") totalIncome += amt;
+            if (t.type === "expense") totalExpense += amt;
         });
 
         document.getElementById("totalIncome").textContent = formatMoney(totalIncome);
@@ -278,87 +433,9 @@
         document.getElementById("balance").textContent = formatMoney(totalIncome - totalExpense);
     }
 
-    function renderTransactions() {
-        const listEl = document.getElementById("transactionList");
-        const filterDate = document.getElementById("filterDate").value;
-        const filterCat = document.getElementById("filterCategory").value;
-
-        let filtered = [...state.transactions];
-        if (filterDate) filtered = filtered.filter(t => t.date === filterDate);
-        if (filterCat !== "all") filtered = filtered.filter(t => t.category === filterCat);
-
-        filtered.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-
-        if (filtered.length === 0) {
-            listEl.innerHTML = `<div class="empty">Không tìm thấy giao dịch</div>`;
-            return;
-        }
-
-        listEl.innerHTML = filtered.map(t => {
-            const icon = categoryIcons[t.category] || "📦";
-            const sign = t.type === "income" ? "+" : "-";
-            const cls = t.type === "income" ? "income" : "expense";
-            return `
-                <div class="transaction">
-                    <div class="transaction-left">
-                        <div class="icon">${icon}</div>
-                        <div class="transaction-info">
-                            <h3>${escapeHTML(t.category)}</h3>
-                            <p>${escapeHTML(t.note || "Không có ghi chú")}</p>
-                            <p>${formatDate(t.date)}</p>
-                        </div>
-                    </div>
-                    <div class="transaction-right">
-                        <div class="amount ${cls}">${sign}${formatMoney(t.amount)}</div>
-                        <button type="button" class="delete-btn" data-action="delete-tx" data-id="${escapeHTML(t.id)}">Xóa</button>
-                    </div>
-                </div>
-            `;
-        }).join("");
-    }
-
-    function renderDebts() {
-        const listEl = document.getElementById("debtList");
-        let sorted = [...state.debts].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-
-        if (sorted.length === 0) {
-            listEl.innerHTML = `<div class="empty">Chưa có khoản nợ nào</div>`;
-            return;
-        }
-
-        listEl.innerHTML = sorted.map(d => {
-            const isPaid = d.status === "paid";
-            const typeText = d.type === "borrow" ? "Đi vay" : "Cho mượn";
-            const typeBg = d.type === "borrow" ? "#dc2626" : "#16a34a";
-
-            return `
-                <div class="transaction" style="${isPaid ? 'opacity: 0.55;' : ''}">
-                    <div class="transaction-left">
-                        <div class="icon" style="background: ${isPaid ? '#e5e7eb' : '#fef3c7'};">🤝</div>
-                        <div class="transaction-info">
-                            <h3 style="display:flex; align-items:center;">
-                                ${escapeHTML(d.person)}
-                                <span style="font-size:10px; color:white; background:${typeBg}; padding:2px 6px; border-radius:4px; margin-left:6px;">${typeText}</span>
-                            </h3>
-                            <p>${escapeHTML(d.note || "Không có ghi chú")} | Ngày tạo: ${formatDate(d.date)}</p>
-                            ${isPaid ? '<p style="color:#16a34a; font-weight:bold; margin-top:2px;">✔ Đã thanh toán</p>' : '<p style="color:#f59e0b; font-weight:bold; margin-top:2px;">⏳ Chưa thanh toán</p>'}
-                        </div>
-                    </div>
-                    <div class="transaction-right">
-                        <div class="amount" style="color:#374151;">${formatMoney(d.amount)}</div>
-                        <div style="display:flex; gap:5px;">
-                            ${!isPaid ? `<button type="button" class="pay-btn" data-action="pay-debt" data-id="${escapeHTML(d.id)}">Đã trả</button>` : ''}
-                            <button type="button" class="delete-btn" data-action="delete-debt" data-id="${escapeHTML(d.id)}">Xóa</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join("");
-    }
-
-    function renderChart() {
+    function updateChart() {
         const catTotals = {};
-        state.transactions.forEach(t => {
+        transactions.forEach(t => {
             if (t.type === "expense") {
                 catTotals[t.category] = (catTotals[t.category] || 0) + Number(t.amount);
             }
@@ -368,126 +445,19 @@
         const data = Object.values(catTotals);
         const ctx = document.getElementById("expenseChart").getContext("2d");
 
-        if (state.chartInstance) {
-            state.chartInstance.destroy();
-            state.chartInstance = null;
-        }
-
+        if (expenseChart) expenseChart.destroy();
         if (labels.length === 0) return;
 
-        state.chartInstance = new Chart(ctx, {
+        expenseChart = new Chart(ctx, {
             type: "doughnut",
-            data: {
-                labels,
-                datasets: [{
-                    data,
-                    backgroundColor: [
-                        "#3b82f6", "#ef4444", "#10b981", "#f59e0b",
-                        "#8b5cf6", "#ec4899", "#6366f1", "#14b8a6"
-                    ],
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: "bottom" }
-                }
-            }
+            data: { labels, datasets: [{ data, borderWidth: 1 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
         });
     }
 
-    // ==========================================
-    // ACTION HANDLERS
-    // ==========================================
-    async function handleAddTransaction() {
-        const typeEl = document.querySelector('input[name="type"]:checked');
-        const amountEl = document.getElementById("amount");
-        const catEl = document.getElementById("category");
-        const dateEl = document.getElementById("date");
-        const noteEl = document.getElementById("note");
-
-        const type = typeEl ? typeEl.value : "expense";
-        const amount = Number(amountEl.value);
-        const category = catEl.value;
-        const date = dateEl.value;
-        const note = noteEl.value.trim();
-
-        if (!amount || amount <= 0) return alert("Vui lòng nhập số tiền hợp lệ!");
-        if (!date) return alert("Vui lòng chọn ngày!");
-
-        const btn = document.getElementById("btn-add-tx");
-        btn.disabled = true;
-
-        try {
-            const res = await fetch(`${API_BASE}/transactions`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type, amount, category, date, note })
-            });
-            const data = await res.json();
-            if (data.success) {
-                amountEl.value = "";
-                noteEl.value = "";
-                await syncData();
-            } else {
-                alert("Lỗi: " + data.message);
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            btn.disabled = false;
-        }
-    }
-
-    async function handleAddDebt() {
-        const typeEl = document.querySelector('input[name="debtType"]:checked');
-        const personEl = document.getElementById("debtPerson");
-        const amountEl = document.getElementById("debtAmount");
-        const dateEl = document.getElementById("debtDate");
-        const noteEl = document.getElementById("debtNote");
-
-        const type = typeEl ? typeEl.value : "borrow";
-        const person = personEl.value.trim();
-        const amount = Number(amountEl.value);
-        const date = dateEl.value;
-        const note = noteEl.value.trim();
-
-        if (!person || !amount || amount <= 0 || !date) {
-            return alert("Vui lòng nhập đầy đủ Tên, Số tiền và Ngày!");
-        }
-
-        const btn = document.getElementById("btn-add-debt");
-        btn.disabled = true;
-
-        try {
-            const res = await fetch(`${API_BASE}/debts`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type, person, amount, date, note })
-            });
-            const data = await res.json();
-            if (data.success) {
-                personEl.value = "";
-                amountEl.value = "";
-                noteEl.value = "";
-                await syncData();
-            } else {
-                alert("Lỗi: " + data.message);
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            btn.disabled = false;
-        }
-    }
-
-    // ==========================================
-    // EVENT LISTENERS (CSP Compliant)
-    // ==========================================
-    document.getElementById("btn-add-tx").addEventListener("click", handleAddTransaction);
-    document.getElementById("btn-add-debt").addEventListener("click", handleAddDebt);
+    // Event Listeners
+    document.getElementById("btn-add-tx").addEventListener("click", addTransaction);
+    document.getElementById("btn-add-debt").addEventListener("click", addDebt);
 
     document.getElementById("filterDate").addEventListener("change", renderTransactions);
     document.getElementById("filterCategory").addEventListener("change", renderTransactions);
@@ -497,47 +467,19 @@
         renderTransactions();
     });
 
-    // Delegated click handling
-    document.getElementById("transactionList").addEventListener("click", async (e) => {
+    document.getElementById("transactionList").addEventListener("click", (e) => {
         const btn = e.target.closest("button[data-action='delete-tx']");
-        if (!btn) return;
-        if (!confirm("Bạn có chắc chắn muốn xóa giao dịch này?")) return;
-
-        try {
-            await fetch(`${API_BASE}/transactions/${encodeURIComponent(btn.dataset.id)}`, { method: "DELETE" });
-            await syncData();
-        } catch (err) {
-            console.error(err);
-        }
+        if (btn) deleteTransaction(btn.dataset.id);
     });
 
-    document.getElementById("debtList").addEventListener("click", async (e) => {
+    document.getElementById("debtList").addEventListener("click", (e) => {
         const payBtn = e.target.closest("button[data-action='pay-debt']");
         const delBtn = e.target.closest("button[data-action='delete-debt']");
-
-        if (payBtn) {
-            if (!confirm("Xác nhận đã thanh toán khoản nợ này?")) return;
-            try {
-                await fetch(`${API_BASE}/debts/${encodeURIComponent(payBtn.dataset.id)}/pay`, { method: "PUT" });
-                await syncData();
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        if (delBtn) {
-            if (!confirm("Bạn có chắc chắn muốn xóa bản ghi nợ này?")) return;
-            try {
-                await fetch(`${API_BASE}/debts/${encodeURIComponent(delBtn.dataset.id)}`, { method: "DELETE" });
-                await syncData();
-            } catch (err) {
-                console.error(err);
-            }
-        }
+        if (payBtn) payDebt(payBtn.dataset.id);
+        if (delBtn) deleteDebt(delBtn.dataset.id);
     });
 
-    // Initial Load
-    syncData();
+    loadAllData();
 </script>
 
 </body>
