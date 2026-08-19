@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,18 +8,49 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
-        body { background: #f4f6f9; color: #1f2937; }
+        :root {
+            --bg-body: #f4f6f9;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --card-bg: #ffffff;
+            --card-border: #e5e7eb;
+            --input-bg: #ffffff;
+            --input-border: #d1d5db;
+            --icon-bg: #eff6ff;
+            --box-bg: #fafafa;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --input-bg: #0f172a;
+            --input-border: #475569;
+            --icon-bg: #334155;
+            --box-bg: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+        body { background: var(--bg-body); color: var(--text-main); }
         .container { width: 95%; max-width: 1200px; margin: 30px auto; }
-        .header { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
-        .header h1 { font-size: 30px; margin-bottom: 8px; }
-        .header p { opacity: 0.9; }
+        
+        .header { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .header h1 { font-size: 28px; margin-bottom: 6px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn-theme { background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.4); padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .btn-theme:hover { background: rgba(255, 255, 255, 0.35); }
+        .btn-export { background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .btn-export:hover { background: #059669; }
 
         /* DASHBOARDS */
         .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 15px; }
         .debt-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .card { background: white; padding: 22px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); }
-        .card-title { font-size: 15px; color: #6b7280; margin-bottom: 10px; }
+        .card { background: var(--card-bg); padding: 22px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); border: 1px solid var(--card-border); }
+        .card-title { font-size: 15px; color: var(--text-sub); margin-bottom: 10px; }
         .card-value { font-size: 26px; font-weight: bold; }
         .income { color: #16a34a; }
         .expense { color: #dc2626; }
@@ -29,18 +60,18 @@
 
         /* MAIN GRID */
         .main-grid { display: grid; grid-template-columns: 380px 1fr; gap: 25px; }
-        .section { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); margin-bottom: 25px; }
-        .section h2 { margin-bottom: 20px; font-size: 20px; }
+        .section { background: var(--card-bg); padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); border: 1px solid var(--card-border); margin-bottom: 25px; }
+        .section h2 { margin-bottom: 20px; font-size: 20px; color: var(--text-main); }
 
         /* FORMS */
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 7px; font-weight: bold; font-size: 14px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; font-size: 14px; }
+        .form-group label { display: block; margin-bottom: 7px; font-weight: bold; font-size: 14px; color: var(--text-main); }
+        input, select { width: 100%; padding: 12px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); border-radius: 8px; outline: none; font-size: 14px; }
         input:focus, select:focus { border-color: #2563eb; }
         .radio-group { display: flex; gap: 10px; }
         .radio-option { flex: 1; }
         .radio-option input { display: none; }
-        .radio-option label { display: block; text-align: center; padding: 11px; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; }
+        .radio-option label { display: block; text-align: center; padding: 11px; border: 1px solid var(--input-border); border-radius: 8px; cursor: pointer; color: var(--text-main); }
         .radio-option input:checked + label { background: #2563eb; color: white; border-color: #2563eb; }
         
         button { border: none; cursor: pointer; border-radius: 8px; padding: 12px 18px; font-size: 14px; font-weight: bold; transition: opacity 0.2s; }
@@ -51,15 +82,21 @@
         .btn-debt:hover { background: #d97706; }
         .btn-savings { background: #10b981; color: white; width: 100%; }
         .btn-savings:hover { background: #059669; }
+        .btn-recurring { background: #8b5cf6; color: white; width: 100%; }
+        .btn-recurring:hover { background: #7c3aed; }
+
+        /* SEARCH & FILTER CONTROLS */
+        .filter-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; background: var(--box-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border); }
+        .filter-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .filter-row input, .filter-row select { flex: 1; min-width: 130px; }
 
         /* TRANSACTIONS & LISTS */
-        .filter { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #e5e7eb; }
+        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--card-border); }
         .transaction:last-child { border-bottom: none; }
         .transaction-left { display: flex; align-items: center; gap: 12px; }
-        .icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #eff6ff; font-size: 20px; flex-shrink: 0; }
-        .transaction-info h3 { font-size: 15px; margin-bottom: 4px; }
-        .transaction-info p { color: #6b7280; font-size: 12px; margin-bottom: 2px; }
+        .icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--icon-bg); font-size: 20px; flex-shrink: 0; }
+        .transaction-info h3 { font-size: 15px; margin-bottom: 4px; color: var(--text-main); }
+        .transaction-info p { color: var(--text-sub); font-size: 12px; margin-bottom: 2px; }
         .transaction-right { display: flex; align-items: center; gap: 15px; }
         .amount { font-weight: bold; white-space: nowrap; text-align: right; }
         .amount.expense { color: #dc2626; }
@@ -69,16 +106,14 @@
         .pay-btn { background: #dcfce7; color: #16a34a; padding: 7px 10px; font-size: 12px; }
         .part-btn { background: #fef3c7; color: #b45309; padding: 7px 10px; font-size: 12px; }
         .deposit-btn { background: #ecfdf5; color: #059669; padding: 7px 10px; font-size: 12px; }
-        .empty { text-align: center; color: #9ca3af; padding: 25px; }
+        .empty { text-align: center; color: var(--text-sub); padding: 25px; }
 
-        /* PROGRESS BARS (BUDGET & SAVINGS) */
-        .progress-box { margin-bottom: 16px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fafafa; }
+        /* PROGRESS BARS */
+        .progress-box { margin-bottom: 16px; padding: 14px; border: 1px solid var(--card-border); border-radius: 10px; background: var(--box-bg); }
         .progress-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 6px; }
-        .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; margin-bottom: 6px; }
-        .progress-bar-bg { height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden; width: 100%; }
+        .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-sub); margin-bottom: 6px; }
+        .progress-bar-bg { height: 10px; background: var(--card-border); border-radius: 5px; overflow: hidden; width: 100%; }
         .progress-bar-fill { height: 100%; transition: width 0.4s ease; border-radius: 5px; }
-
-        /* PROGRESS COLORS */
         .fill-green { background: #16a34a; }
         .fill-yellow { background: #eab308; }
         .fill-red { background: #dc2626; }
@@ -94,8 +129,9 @@
 
         @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
         @media (max-width: 650px) {
-            .dashboard, .debt-dashboard, .filter { grid-template-columns: 1fr; }
+            .dashboard, .debt-dashboard { grid-template-columns: 1fr; }
             .transaction-right { flex-direction: column; align-items: flex-end; gap: 5px; }
+            .header { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -103,9 +139,16 @@
 <body>
 
 <div class="container">
+    <!-- HEADER -->
     <div class="header">
-        <h1>💰 Quản Lý Chi Tiêu Cá Nhân</h1>
-        <p>Theo dõi thu nhập, chi tiêu, ngân sách, tiết kiệm và các khoản nợ hằng ngày</p>
+        <div>
+            <h1>💰 Quản Lý Chi Tiêu Cá Nhân</h1>
+            <p>Theo dõi thu nhập, chi tiêu, ngân sách, tiết kiệm và quản lý nợ thông minh</p>
+        </div>
+        <div class="header-actions">
+            <button id="btn-export-csv" class="btn-export">📥 Xuất Excel (CSV)</button>
+            <button id="btn-theme-toggle" class="btn-theme">🌓 Giao diện</button>
+        </div>
     </div>
 
     <!-- DASHBOARD CHI TIÊU -->
@@ -137,9 +180,9 @@
     </div>
 
     <div class="main-grid">
-        <!-- CỘT TRÁI: FORM NHẬP LIỆU & THIẾT LẬP -->
+        <!-- CỘT TRÁI: FORMS NHẬP LIỆU -->
         <div>
-            <!-- FORM CHI TIÊU -->
+            <!-- FORM CHI TIÊU THƯỜNG -->
             <div class="section">
                 <h2>➕ Thêm giao dịch</h2>
                 <div class="form-group">
@@ -174,6 +217,42 @@
                 <button type="button" class="btn-add" id="btn-add-tx">+ Thêm giao dịch</button>
             </div>
 
+            <!-- FORM GIAO DỊCH ĐỊNH KỲ (RECURRING) -->
+            <div class="section" style="border: 2px solid #ddd6fe;">
+                <h2>🔄 Giao Dịch Định Kỳ Tự Động</h2>
+                <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Tự động tạo giao dịch vào ngày chỉ định mỗi tháng (tiền nhà, lương, hóa đơn...)</p>
+                <div class="form-group">
+                    <label>Loại giao dịch</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" name="recType" id="recExpense" value="expense" checked>
+                            <label for="recExpense">💸 Chi tiêu</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="recType" id="recIncome" value="income">
+                            <label for="recIncome">💵 Thu nhập</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group"><label for="recAmount">Số tiền định kỳ (₫)</label><input type="number" id="recAmount" placeholder="Ví dụ: 3000000" min="0"></div>
+                <div class="form-group">
+                    <label for="recCategory">Danh mục</label>
+                    <select id="recCategory">
+                        <option value="Hóa đơn">🧾 Hóa đơn</option>
+                        <option value="Lương">💰 Lương</option>
+                        <option value="Ăn uống">🍜 Ăn uống</option>
+                        <option value="Đi lại">🛵 Đi lại</option>
+                        <option value="Mua sắm">🛒 Mua sắm</option>
+                        <option value="Học tập">📚 Học tập</option>
+                        <option value="Giải trí">🎮 Giải trí</option>
+                        <option value="Khác">📦 Khác</option>
+                    </select>
+                </div>
+                <div class="form-group"><label for="recDay">Ngày lặp lại trong tháng (1 - 31)</label><input type="number" id="recDay" min="1" max="31" placeholder="Ví dụ: 5"></div>
+                <div class="form-group"><label for="recNote">Tên/Ghi chú</label><input type="text" id="recNote" placeholder="Ví dụ: Tiền thuê nhà, NetFlix..."></div>
+                <button type="button" class="btn-recurring" id="btn-add-rec">+ Lưu Giao Dịch Định Kỳ</button>
+            </div>
+
             <!-- FORM NỢ -->
             <div class="section" style="border: 2px solid #fef3c7;">
                 <h2>🤝 Quản lý Nợ</h2>
@@ -198,7 +277,7 @@
                 <button type="button" class="btn-debt" id="btn-add-debt">+ Thêm khoản nợ</button>
             </div>
 
-            <!-- FORM THIẾT LẬP HẠN MỨC CHI TIÊU THÁNG -->
+            <!-- FORM HẠN MỨC CHI TIÊU THÁNG -->
             <div class="section" style="border: 2px solid #e0e7ff;">
                 <h2>🎯 Đặt Ngân Sách Tháng</h2>
                 <div class="form-group">
@@ -217,12 +296,12 @@
                 <button type="button" class="btn-add" id="btn-set-budget" style="background:#4f46e5;">Lưu hạn mức</button>
             </div>
 
-            <!-- FORM MỤC TIÊU TIẾT KIỆM -->
+            <!-- FORM TIẾT KIỆM -->
             <div class="section" style="border: 2px solid #d1fae5;">
                 <h2>🌱 Tạo Mục Tiêu Tiết Kiệm</h2>
                 <div class="form-group"><label for="savingName">Tên mục tiêu</label><input type="text" id="savingName" placeholder="Ví dụ: Mua Laptop, Quỹ dự phòng..."></div>
                 <div class="form-group"><label for="savingTarget">Số tiền mục tiêu (₫)</label><input type="number" id="savingTarget" placeholder="Ví dụ: 15000000" min="0"></div>
-                <div class="form-group"><label for="savingInitial">Đã có sẵn (₫)</label><input type="number" id="savingInitial" placeholder="Ví dụ: 1000000 (Mặc định 0)" min="0"></div>
+                <div class="form-group"><label for="savingInitial">Đã có sẵn (₫)</label><input type="number" id="savingInitial" placeholder="Ví dụ: 1000000" min="0"></div>
                 <div class="form-group"><label for="savingDeadline">Hạn chót đạt được</label><input type="date" id="savingDeadline"></div>
                 <button type="button" class="btn-savings" id="btn-add-saving">+ Tạo mục tiêu tiết kiệm</button>
             </div>
@@ -234,45 +313,65 @@
             </div>
         </div>
 
-        <!-- CỘT PHẢI: THEO DÕI NGÂN SÁCH, TIẾT KIỆM & LỊCH SỬ -->
+        <!-- CỘT PHẢI: BỘ LỌC NÂNG CAO, DANH SÁCH & TIẾN ĐỘ -->
         <div>
-            <!-- THEO DÕI HẠN MỨC CHI TIÊU THÁNG HIỆN TẠI -->
+            <!-- BỘ LỌC TÌM KIẾM NÂNG CAO CHO GIAO DỊCH -->
+            <div class="section">
+                <h2>📋 Lịch Sử Giao Dịch</h2>
+                
+                <div class="filter-container">
+                    <div class="filter-row">
+                        <input type="text" id="searchKeyword" placeholder="🔍 Tìm kiếm ghi chú, danh mục...">
+                        <select id="filterCategory">
+                            <option value="all">Tất cả danh mục</option>
+                            <option value="Ăn uống">🍜 Ăn uống</option>
+                            <option value="Đi lại">🛵 Đi lại</option>
+                            <option value="Mua sắm">🛒 Mua sắm</option>
+                            <option value="Học tập">📚 Học tập</option>
+                            <option value="Giải trí">🎮 Giải trí</option>
+                            <option value="Hóa đơn">🧾 Hóa đơn</option>
+                            <option value="Lương">💰 Lương</option>
+                            <option value="Khác">📦 Khác</option>
+                        </select>
+                    </div>
+                    <div class="filter-row">
+                        <select id="filterRangePreset">
+                            <option value="all">Toàn bộ thời gian</option>
+                            <option value="today">Hôm nay</option>
+                            <option value="this_month">Tháng này</option>
+                            <option value="last_month">Tháng trước</option>
+                            <option value="custom">Tùy chọn khoảng ngày</option>
+                        </select>
+                        <input type="date" id="filterFromDate" style="display:none;" title="Từ ngày">
+                        <input type="date" id="filterToDate" style="display:none;" title="Đến ngày">
+                        <button type="button" id="btn-clear-filter" style="background:#e5e7eb; color:#374151; padding: 8px 14px;">Xóa lọc</button>
+                    </div>
+                </div>
+
+                <div id="transactionList"><div class="empty">Chưa có giao dịch nào</div></div>
+            </div>
+
+            <!-- DANH SÁCH GIAO DỊCH ĐỊNH KỲ ĐANG HOẠT ĐỘNG -->
+            <div class="section">
+                <h2>🔄 Danh Sách Định Kỳ Tự Động</h2>
+                <div id="recurringList"><div class="empty">Chưa có giao dịch định kỳ nào</div></div>
+            </div>
+
+            <!-- HẠN MỨC CHI TIÊU THÁNG HIỆN TẠI -->
             <div class="section">
                 <h2>📊 Hạn Mức Chi Tiêu Tháng Này</h2>
-                <p style="font-size: 13px; color: #6b7280; margin-bottom: 15px;">Theo dõi tiến độ chi tiêu theo từng danh mục so với ngân sách đã đặt.</p>
                 <div id="budgetList"><div class="empty">Chưa có danh mục nào được đặt hạn mức</div></div>
             </div>
 
-            <!-- THEO DÕI MỤC TIÊU TIẾT KIỆM -->
+            <!-- MỤC TIÊU TIẾT KIỆM -->
             <div class="section">
                 <h2>🏆 Mục Tiêu Tiết Kiệm</h2>
                 <div id="savingsList"><div class="empty">Chưa có mục tiêu tiết kiệm nào</div></div>
             </div>
 
-            <!-- LỊCH SỬ CHI TIÊU -->
-            <div class="section">
-                <h2>📋 Lịch sử giao dịch</h2>
-                <div class="filter">
-                    <input type="date" id="filterDate">
-                    <select id="filterCategory">
-                        <option value="all">Tất cả danh mục</option>
-                        <option value="Ăn uống">🍜 Ăn uống</option>
-                        <option value="Đi lại">🛵 Đi lại</option>
-                        <option value="Mua sắm">🛒 Mua sắm</option>
-                        <option value="Học tập">📚 Học tập</option>
-                        <option value="Giải trí">🎮 Giải trí</option>
-                        <option value="Hóa đơn">🧾 Hóa đơn</option>
-                        <option value="Lương">💰 Lương</option>
-                        <option value="Khác">📦 Khác</option>
-                    </select>
-                    <button type="button" id="btn-clear-filter" style="background:#e5e7eb;">Xóa lọc</button>
-                </div>
-                <div id="transactionList"><div class="empty">Chưa có giao dịch nào</div></div>
-            </div>
-
             <!-- LỊCH SỬ NỢ -->
             <div class="section">
-                <h2>📒 Danh sách các khoản Nợ</h2>
+                <h2>📒 Danh Sách Các Khoản Nợ</h2>
                 <div id="debtList"><div class="empty">Chưa có khoản nợ nào</div></div>
             </div>
         </div>
@@ -302,14 +401,27 @@
     let debts = [];
     let budgets = [];
     let savings = [];
+    let recurringRules = [];
     let expenseChart = null;
 
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("date").value = today;
     document.getElementById("debtDate").value = today;
 
+    // THEME SETUP
+    const savedTheme = localStorage.getItem("app_theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+
+    function toggleTheme() {
+        const curr = document.documentElement.getAttribute("data-theme");
+        const next = curr === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("app_theme", next);
+        updateChart();
+    }
+
     const formatMoney = (num) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(num) || 0);
-    const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    const escapeHTML = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&#039;");
     const formatDate = (d) => {
         if (!d) return "";
         const parts = d.split("-");
@@ -339,23 +451,85 @@
     }
 
     // =====================================
+    // RECURRING ENGINE (TỰ ĐỘNG SINH GIAO DỊCH)
+    // =====================================
+    async function processRecurringTransactions() {
+        if (recurringRules.length === 0) return;
+
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
+        const currentDay = now.getDate();
+        const currentYearMonth = `${currentYear}-${currentMonth}`;
+
+        for (const rule of recurringRules) {
+            const ruleDay = Number(rule.day);
+            // If the day has arrived or passed in the current month
+            if (currentDay >= ruleDay) {
+                const targetDayStr = String(ruleDay).padStart(2, "0");
+                const targetDate = `${currentYearMonth}-${targetDayStr}`;
+
+                // Check if this recurring transaction has already been added this month
+                const alreadyExists = transactions.some(t => 
+                    t.isRecurring && 
+                    t.recurringRuleId === rule.id && 
+                    t.date && t.date.startsWith(currentYearMonth)
+                );
+
+                if (!alreadyExists) {
+                    try {
+                        const newDoc = await addDoc(collection(db, "transactions"), {
+                            type: rule.type,
+                            amount: rule.amount,
+                            category: rule.category,
+                            date: targetDate,
+                            note: `${rule.note || "Định kỳ"} (Tự động)`,
+                            isRecurring: true,
+                            recurringRuleId: rule.id,
+                            createdAt: new Date().toISOString()
+                        });
+                        transactions.push({
+                            id: newDoc.id,
+                            type: rule.type,
+                            amount: rule.amount,
+                            category: rule.category,
+                            date: targetDate,
+                            note: `${rule.note || "Định kỳ"} (Tự động)`,
+                            isRecurring: true,
+                            recurringRuleId: rule.id
+                        });
+                    } catch (e) {
+                        console.error("Lỗi auto recurring:", e);
+                    }
+                }
+            }
+        }
+    }
+
+    // =====================================
     // LOAD ALL DATA FROM FIRESTORE
     // =====================================
     async function loadAllData() {
         try {
-            const [txSnap, debtSnap, budgetSnap, saveSnap] = await Promise.all([
+            const [txSnap, debtSnap, budgetSnap, saveSnap, recSnap] = await Promise.all([
                 getDocs(collection(db, "transactions")),
                 getDocs(collection(db, "debts")),
                 getDocs(collection(db, "budgets")),
-                getDocs(collection(db, "savings"))
+                getDocs(collection(db, "savings")),
+                getDocs(collection(db, "recurring"))
             ]);
 
             transactions = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             debts = debtSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             budgets = budgetSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             savings = saveSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            recurringRules = recSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            // Process auto-recurring entries
+            await processRecurringTransactions();
 
             renderTransactions();
+            renderRecurringList();
             renderDebts();
             renderBudgets();
             renderSavings();
@@ -368,7 +542,7 @@
     }
 
     // =====================================
-    // TRANSACTION HANDLERS
+    // TRANSACTIONS & FILTER ENGINE
     // =====================================
     async function addTransaction() {
         const type = document.querySelector('input[name="type"]:checked').value;
@@ -409,17 +583,53 @@
 
     function renderTransactions() {
         const list = document.getElementById("transactionList");
-        const filterDate = document.getElementById("filterDate").value;
+        const keyword = document.getElementById("searchKeyword").value.trim().toLowerCase();
         const filterCategory = document.getElementById("filterCategory").value;
+        const rangePreset = document.getElementById("filterRangePreset").value;
+        const fromDate = document.getElementById("filterFromDate").value;
+        const toDate = document.getElementById("filterToDate").value;
+
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
+        const thisMonthStr = `${currentYear}-${currentMonth}`;
+
+        const lastMonthDate = new Date(currentYear, now.getMonth() - 1, 1);
+        const lastMonthYear = lastMonthDate.getFullYear();
+        const lastMonthMonth = String(lastMonthDate.getMonth() + 1).padStart(2, "0");
+        const lastMonthStr = `${lastMonthYear}-${lastMonthMonth}`;
 
         let filtered = [...transactions];
-        if (filterDate) filtered = filtered.filter(t => t.date === filterDate);
-        if (filterCategory !== "all") filtered = filtered.filter(t => t.category === filterCategory);
+
+        // 1. Keyword search (category + note)
+        if (keyword) {
+            filtered = filtered.filter(t => 
+                (t.category && t.category.toLowerCase().includes(keyword)) ||
+                (t.note && t.note.toLowerCase().includes(keyword))
+            );
+        }
+
+        // 2. Category filter
+        if (filterCategory !== "all") {
+            filtered = filtered.filter(t => t.category === filterCategory);
+        }
+
+        // 3. Date Range Filter
+        if (rangePreset === "today") {
+            filtered = filtered.filter(t => t.date === today);
+        } else if (rangePreset === "this_month") {
+            filtered = filtered.filter(t => t.date && t.date.startsWith(thisMonthStr));
+        } else if (rangePreset === "last_month") {
+            filtered = filtered.filter(t => t.date && t.date.startsWith(lastMonthStr));
+        } else if (rangePreset === "custom") {
+            if (fromDate) filtered = filtered.filter(t => t.date >= fromDate);
+            if (toDate) filtered = filtered.filter(t => t.date <= toDate);
+        }
 
         filtered.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
         if (filtered.length === 0) {
-            list.innerHTML = `<div class="empty">Không tìm thấy giao dịch</div>`;
+            list.innerHTML = `<div class="empty">Không tìm thấy giao dịch phù hợp</div>`;
             return;
         }
 
@@ -428,7 +638,7 @@
                 <div class="transaction-left">
                     <div class="icon">${categoryIcons[t.category] || "📦"}</div>
                     <div class="transaction-info">
-                        <h3>${escapeHTML(t.category)}</h3>
+                        <h3>${escapeHTML(t.category)} ${t.isRecurring ? '<span style="font-size:10px; background:#8b5cf6; color:white; padding:2px 6px; border-radius:4px;">🔄 Định kỳ</span>' : ''}</h3>
                         <p>${escapeHTML(t.note)}</p>
                         <p>${formatDate(t.date)}</p>
                     </div>
@@ -442,7 +652,73 @@
     }
 
     // =====================================
-    // DEBT HANDLERS
+    // RECURRING RULES HANDLERS
+    // =====================================
+    async function addRecurringRule() {
+        const type = document.querySelector('input[name="recType"]:checked').value;
+        const amount = Number(document.getElementById("recAmount").value);
+        const category = document.getElementById("recCategory").value;
+        const day = Number(document.getElementById("recDay").value);
+        const note = document.getElementById("recNote").value.trim();
+
+        if (!amount || amount <= 0 || !day || day < 1 || day > 31) {
+            return alert("Vui lòng nhập số tiền và ngày trong tháng (1 - 31) hợp lệ!");
+        }
+
+        const btn = document.getElementById("btn-add-rec");
+        btn.disabled = true;
+
+        try {
+            await addDoc(collection(db, "recurring"), {
+                type, amount, category, day, note: note || "Giao dịch định kỳ", createdAt: new Date().toISOString()
+            });
+            document.getElementById("recAmount").value = "";
+            document.getElementById("recDay").value = "";
+            document.getElementById("recNote").value = "";
+            await loadAllData();
+        } catch (e) {
+            alert("Lỗi lưu mẫu định kỳ: " + e.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function deleteRecurringRule(id) {
+        if (!confirm("Hủy giao dịch định kỳ này? (Các giao dịch đã tạo trước đó vẫn giữ nguyên)")) return;
+        try {
+            await deleteDoc(doc(db, "recurring", id));
+            await loadAllData();
+        } catch (e) {
+            alert("Lỗi xóa: " + e.message);
+        }
+    }
+
+    function renderRecurringList() {
+        const list = document.getElementById("recurringList");
+        if (recurringRules.length === 0) {
+            list.innerHTML = `<div class="empty">Chưa có giao dịch định kỳ nào</div>`;
+            return;
+        }
+
+        list.innerHTML = recurringRules.map(r => `
+            <div class="transaction">
+                <div class="transaction-left">
+                    <div class="icon" style="background:#ede9fe;">🔄</div>
+                    <div class="transaction-info">
+                        <h3>${escapeHTML(r.category)} <span style="font-size:11px; color:#8b5cf6;">(Ngày ${r.day} hàng tháng)</span></h3>
+                        <p>${escapeHTML(r.note)}</p>
+                    </div>
+                </div>
+                <div class="transaction-right">
+                    <div class="amount ${r.type}">${r.type === "income" ? "+" : "-"}${formatMoney(r.amount)}</div>
+                    <button type="button" class="delete-btn" data-action="delete-rec" data-id="${r.id}">Hủy</button>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    // =====================================
+    // DEBTS HANDLERS
     // =====================================
     async function addDebt() {
         const type = document.querySelector('input[name="debtType"]:checked').value;
@@ -570,7 +846,7 @@
                     </div>
                 </div>
                 <div class="transaction-right">
-                    <div class="amount" style="color: #374151;">
+                    <div class="amount" style="color: var(--text-main);">
                         ${formatMoney(remaining)}
                         ${isPartial ? `<div style="font-size:11px; color:#9ca3af; text-decoration:line-through;">${formatMoney(d.amount)}</div>` : ''}
                     </div>
@@ -588,7 +864,7 @@
     }
 
     // =====================================
-    // MONTHLY BUDGETS HANDLERS
+    // BUDGETS HANDLERS
     // =====================================
     async function setCategoryBudget() {
         const category = document.getElementById("budgetCategory").value;
@@ -600,7 +876,6 @@
         btn.disabled = true;
 
         try {
-            // Using category name as ID so setting a budget overwrites the previous limit
             await setDoc(doc(db, "budgets", category), {
                 category,
                 limit,
@@ -632,9 +907,7 @@
             return;
         }
 
-        const currentYearMonth = today.substring(0, 7); // e.g. "2026-08"
-
-        // Calculate this month's expense per category
+        const currentYearMonth = today.substring(0, 7);
         const thisMonthExpense = {};
         transactions.forEach(t => {
             if (t.type === "expense" && t.date && t.date.startsWith(currentYearMonth)) {
@@ -680,7 +953,7 @@
     }
 
     // =====================================
-    // SAVINGS TARGET HANDLERS
+    // SAVINGS HANDLERS
     // =====================================
     async function addSavingsTarget() {
         const name = document.getElementById("savingName").value.trim();
@@ -760,7 +1033,7 @@
             const deadlineBadge = s.deadline ? getDueDateBadge(s.deadline, isCompleted) : "";
 
             return `
-            <div class="progress-box" style="${isCompleted ? 'border-color: #10b981; background: #f0fdf4;' : ''}">
+            <div class="progress-box" style="${isCompleted ? 'border-color: #10b981; background: var(--card-bg);' : ''}">
                 <div class="progress-header">
                     <span style="font-size: 15px;">🎯 ${escapeHTML(s.name)} ${isCompleted ? '🎉 <b style="color:#059669;">(ĐÃ ĐẠT MỤC TIÊU)</b>' : ''}</span>
                     <span>${percent}%</span>
@@ -782,6 +1055,46 @@
             </div>
             `;
         }).join("");
+    }
+
+    // =====================================
+    // CSV / EXCEL EXPORT ENGINE
+    // =====================================
+    function exportToCSV() {
+        if (transactions.length === 0 && debts.length === 0) {
+            return alert("Chưa có dữ liệu để xuất file!");
+        }
+
+        let csv = "\uFEFF"; // UTF-8 BOM for Vietnamese characters in Excel
+
+        // 1. Transactions Sheet
+        csv += "=== DANH SÁCH GIAO DỊCH THU / CHI ===\n";
+        csv += "ID,Ngày,Loại,Danh mục,Số tiền (VND),Ghi chú,Định kỳ\n";
+        transactions.forEach(t => {
+            const typeStr = t.type === "income" ? "Thu nhập" : "Chi tiêu";
+            const noteClean = `"${(t.note || '').replace(/"/g, '""')}"`;
+            csv += `"${t.id}","${t.date}","${typeStr}","${t.category}",${t.amount},${noteClean},"${t.isRecurring ? 'Có' : 'Không'}"\n`;
+        });
+
+        // 2. Debts Sheet
+        csv += "\n=== DANH SÁCH KHOẢN NỢ ===\n";
+        csv += "ID,Tên Người,Loại Nợ,Tổng Tiền,Còn Nợ,Ngày Tạo,Hạn Trả,Trạng Thái,Ghi Chú\n";
+        debts.forEach(d => {
+            const typeStr = d.type === "borrow" ? "Đi vay" : "Cho mượn";
+            const statusStr = d.status === "paid" ? "Đã thanh toán" : "Chưa thanh toán";
+            const rem = d.remainingAmount !== undefined ? d.remainingAmount : d.amount;
+            const noteClean = `"${(d.note || '').replace(/"/g, '""')}"`;
+            csv += `"${d.id}","${d.person}","${typeStr}",${d.amount},${rem},"${d.date}","${d.dueDate || ''}","${statusStr}",${noteClean}\n`;
+        });
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `QuanLyChiTieu_Export_${today}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 
     // =====================================
@@ -829,32 +1142,69 @@
         if (expenseChart) expenseChart.destroy();
         if (labels.length === 0) return;
 
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+
         expenseChart = new Chart(ctx, {
             type: "doughnut",
             data: { labels, datasets: [{ data, borderWidth: 1 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { 
+                        position: "bottom",
+                        labels: { color: isDark ? "#f8fafc" : "#1f2937" }
+                    } 
+                } 
+            }
         });
     }
 
     // =====================================
-    // EVENT LISTENERS (CSP-Safe)
+    // EVENT LISTENERS
     // =====================================
+    document.getElementById("btn-theme-toggle").addEventListener("click", toggleTheme);
+    document.getElementById("btn-export-csv").addEventListener("click", exportToCSV);
+
     document.getElementById("btn-add-tx").addEventListener("click", addTransaction);
+    document.getElementById("btn-add-rec").addEventListener("click", addRecurringRule);
     document.getElementById("btn-add-debt").addEventListener("click", addDebt);
     document.getElementById("btn-set-budget").addEventListener("click", setCategoryBudget);
     document.getElementById("btn-add-saving").addEventListener("click", addSavingsTarget);
 
-    document.getElementById("filterDate").addEventListener("change", renderTransactions);
+    // Advanced search & filter listeners
+    document.getElementById("searchKeyword").addEventListener("input", renderTransactions);
     document.getElementById("filterCategory").addEventListener("change", renderTransactions);
-    document.getElementById("btn-clear-filter").addEventListener("click", () => {
-        document.getElementById("filterDate").value = "";
-        document.getElementById("filterCategory").value = "all";
+    document.getElementById("filterFromDate").addEventListener("change", renderTransactions);
+    document.getElementById("filterToDate").addEventListener("change", renderTransactions);
+
+    document.getElementById("filterRangePreset").addEventListener("change", (e) => {
+        const isCustom = e.target.value === "custom";
+        document.getElementById("filterFromDate").style.display = isCustom ? "block" : "none";
+        document.getElementById("filterToDate").style.display = isCustom ? "block" : "none";
         renderTransactions();
     });
 
+    document.getElementById("btn-clear-filter").addEventListener("click", () => {
+        document.getElementById("searchKeyword").value = "";
+        document.getElementById("filterCategory").value = "all";
+        document.getElementById("filterRangePreset").value = "all";
+        document.getElementById("filterFromDate").value = "";
+        document.getElementById("filterToDate").value = "";
+        document.getElementById("filterFromDate").style.display = "none";
+        document.getElementById("filterToDate").style.display = "none";
+        renderTransactions();
+    });
+
+    // Delegated actions
     document.getElementById("transactionList").addEventListener("click", (e) => {
         const btn = e.target.closest("button[data-action='delete-tx']");
         if (btn) deleteTransaction(btn.dataset.id);
+    });
+
+    document.getElementById("recurringList").addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-action='delete-rec']");
+        if (btn) deleteRecurringRule(btn.dataset.id);
     });
 
     document.getElementById("debtList").addEventListener("click", (e) => {
