@@ -49,7 +49,9 @@
         .header p { opacity: 0.9; font-size: 14px; }
         .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-        .btn-header { color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; transition: opacity 0.2s; }
+        .btn-header { color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; transition: opacity 0.2s, transform 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-install { background: #f59e0b; color: #ffffff; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+        .btn-install:hover { background: #d97706; transform: translateY(-2px); }
         .btn-theme { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); }
         .btn-export { background: #10b981; }
         .btn-print { background: #6366f1; }
@@ -166,7 +168,7 @@
         /* PRINT VIEW (PDF/PRINT STATEMENT) */
         @media print {
             body { background: white !important; color: black !important; font-size: 12pt; }
-            .header-actions, .chips-container, .main-grid > div:first-child, .filter-container, .delete-btn, .pay-btn, .part-btn, .deposit-btn, .btn-theme, .btn-export, .btn-print, .btn-transfer, .toast-container, .modal-overlay { display: none !important; }
+            .header-actions, .chips-container, .main-grid > div:first-child, .filter-container, .delete-btn, .pay-btn, .part-btn, .deposit-btn, .btn-theme, .btn-export, .btn-print, .btn-transfer, .btn-install, .toast-container, .modal-overlay { display: none !important; }
             .main-grid { grid-template-columns: 1fr !important; }
             .container { width: 100% !important; max-width: 100% !important; margin: 0 !important; }
             .card, .section, .progress-box { box-shadow: none !important; border: 1px solid #ccc !important; background: white !important; color: black !important; page-break-inside: avoid; }
@@ -233,6 +235,7 @@
             <p>Theo dõi ví tiền, chi tiêu, ngân sách, tiết kiệm và quản lý nợ thông minh</p>
         </div>
         <div class="header-actions">
+            <button id="btn-install-app" class="btn-header btn-install">📲 Cài đặt ứng dụng</button>
             <button id="btn-transfer-open" class="btn-header btn-transfer">🔄 Chuyển Ví</button>
             <button id="btn-print-statement" class="btn-header btn-print">🖨️ In Báo Cáo</button>
             <button id="btn-export-csv" class="btn-header btn-export">📥 Xuất CSV</button>
@@ -521,7 +524,16 @@
         getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // PWA Service Worker Registration
+    // PWA & INSTALL ENGINE
+    let deferredPrompt = null;
+    const installBtn = document.getElementById("btn-install-app");
+
+    // Detect if already installed / standalone
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isStandalone) {
+        installBtn.style.display = "none";
+    }
+
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js').catch(err => {
@@ -529,6 +541,37 @@
             });
         });
     }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = "inline-flex";
+    });
+
+    window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        installBtn.style.display = "none";
+        showToast("Ứng dụng đã được cài đặt thành công!", "success");
+    });
+
+    installBtn.addEventListener("click", async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                installBtn.style.display = 'none';
+            }
+            deferredPrompt = null;
+        } else {
+            // iOS Safari & Unsupported browsers guidance
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+                showToast("Trên iPhone/iPad: Nhấn nút Chia sẻ (Share) ⎋ rồi chọn 'Thêm vào MH chính' (Add to Home Screen)", "info");
+            } else {
+                showToast("Trình duyệt đã cài ứng dụng hoặc hãy dùng menu 3 chấm chọn 'Cài đặt ứng dụng'", "info");
+            }
+        }
+    });
 
     const firebaseConfig = {
         apiKey: "AIzaSyB8WvfnEI-s9hdUpMvDSulzD5_BfJtAE48",
@@ -812,7 +855,6 @@
             const transferGroupId = `transfer_${Date.now()}`;
             const noteText = note ? `Chuyển ví: ${note}` : `Chuyển từ ${walletLabels[fromWallet]} sang ${walletLabels[toWallet]}`;
 
-            // Create Outflow and Inflow pair
             await Promise.all([
                 addDoc(collection(db, "transactions"), {
                     type: "expense",
@@ -1187,7 +1229,7 @@
             showToast("Đã xóa hạn mức", "info");
             await loadAllData();
         } catch (err) {
-            showToast("Lỗi xóa: " + err.message, "danger");
+            showToast("Lỗi xóa hạn mức: " + err.message, "danger");
         }
     }
 
@@ -1366,7 +1408,7 @@
         });
 
         csv += "\n=== DANH SÁCH KHOẢN NỢ ===\n";
-        csv += "ID,Tên Người,Loại Nợ,Tổng Tiền,Còn Nợ,Ngày Tạo,Hạn Trả,Trạng Thái,Ghi Chú\n";
+        csv += "ID,Tên Người,Loại NỢ,Tổng Tiền,Còn Nợ,Ngày Tạo,Hạn Trả,Trạng Thái,Ghi Chú\n";
         debts.forEach(d => {
             const typeStr = d.type === "borrow" ? "Đi vay" : "Cho mượn";
             const statusStr = d.status === "paid" ? "Đã thanh toán" : "Chưa thanh toán";
@@ -1398,13 +1440,11 @@
             const amt = Number(t.amount) || 0;
             const w = t.wallet || "cash";
 
-            // If not an internal wallet transfer, calculate real external Income/Expense
             if (t.category !== "Chuyển ví") {
                 if (t.type === "income") totalIncome += amt;
                 if (t.type === "expense") totalExpense += amt;
             }
 
-            // Wallet balances calculate both transfers and regular income/expense
             if (t.type === "income" && walletBalances[w] !== undefined) walletBalances[w] += amt;
             if (t.type === "expense" && walletBalances[w] !== undefined) walletBalances[w] -= amt;
         });
