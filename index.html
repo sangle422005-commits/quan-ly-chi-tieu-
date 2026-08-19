@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Chi Tiêu & Nợ</title>
 
+    <!-- PWA Setup -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Chi Tiêu">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2454/2454282.png">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
     <style>
@@ -39,12 +47,14 @@
         .header { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .header h1 { font-size: 28px; margin-bottom: 6px; }
         .header p { opacity: 0.9; font-size: 14px; }
-        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-        .btn-theme { background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.4); padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
-        .btn-theme:hover { background: rgba(255, 255, 255, 0.35); }
-        .btn-export { background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
-        .btn-export:hover { background: #059669; }
+        .btn-header { color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; transition: opacity 0.2s; }
+        .btn-theme { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); }
+        .btn-export { background: #10b981; }
+        .btn-print { background: #6366f1; }
+        .btn-transfer { background: #ec4899; }
+        .btn-header:hover { opacity: 0.9; }
 
         /* DASHBOARDS */
         .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 15px; }
@@ -140,8 +150,28 @@
         .toast.toast-success { border-left-color: #10b981; }
         @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
+        /* MODALS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 20px; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: var(--card-bg); width: 100%; max-width: 450px; padding: 25px; border-radius: 15px; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.25); animation: popIn 0.3s ease; }
+        @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 18px; color: var(--text-main); }
+        .modal-close { background: none; border: none; font-size: 20px; color: var(--text-sub); cursor: pointer; padding: 0; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
         /* CHART */
         .chart-container { position: relative; height: 300px; }
+
+        /* PRINT VIEW (PDF/PRINT STATEMENT) */
+        @media print {
+            body { background: white !important; color: black !important; font-size: 12pt; }
+            .header-actions, .chips-container, .main-grid > div:first-child, .filter-container, .delete-btn, .pay-btn, .part-btn, .deposit-btn, .btn-theme, .btn-export, .btn-print, .btn-transfer, .toast-container, .modal-overlay { display: none !important; }
+            .main-grid { grid-template-columns: 1fr !important; }
+            .container { width: 100% !important; max-width: 100% !important; margin: 0 !important; }
+            .card, .section, .progress-box { box-shadow: none !important; border: 1px solid #ccc !important; background: white !important; color: black !important; page-break-inside: avoid; }
+            .header { background: #2563eb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
 
         @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
         @media (max-width: 650px) {
@@ -157,6 +187,44 @@
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- WALLET TRANSFER MODAL -->
+<div class="modal-overlay" id="transferModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>🔄 Chuyển Tiền Giữa Các Ví</h3>
+            <button class="modal-close" id="btnCloseTransfer">&times;</button>
+        </div>
+        <div class="form-group">
+            <label for="transferFrom">Ví nguồn (Chuyển đi)</label>
+            <select id="transferFrom">
+                <option value="bank">💳 Tài khoản Ngân hàng (Bank)</option>
+                <option value="cash">💵 Tiền mặt (Cash)</option>
+                <option value="ewallet">📱 Ví điện tử (Momo/ZaloPay)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="transferTo">Ví đích (Nhận tiền)</label>
+            <select id="transferTo">
+                <option value="cash">💵 Tiền mặt (Cash)</option>
+                <option value="bank">💳 Tài khoản Ngân hàng (Bank)</option>
+                <option value="ewallet">📱 Ví điện tử (Momo/ZaloPay)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="transferAmount">Số tiền chuyển (₫)</label>
+            <input type="number" id="transferAmount" placeholder="Ví dụ: 500000" min="1000">
+        </div>
+        <div class="form-group">
+            <label for="transferNote">Ghi chú (Không bắt buộc)</label>
+            <input type="text" id="transferNote" placeholder="Ví dụ: Rút tiền ATM...">
+        </div>
+        <div class="modal-actions">
+            <button type="button" style="background:#e5e7eb; color:#374151;" id="btnCancelTransfer">Hủy</button>
+            <button type="button" class="btn-transfer btn-header" id="btnConfirmTransfer">Xác Nhận Chuyển</button>
+        </div>
+    </div>
+</div>
+
 <div class="container">
     <!-- HEADER -->
     <div class="header">
@@ -165,8 +233,10 @@
             <p>Theo dõi ví tiền, chi tiêu, ngân sách, tiết kiệm và quản lý nợ thông minh</p>
         </div>
         <div class="header-actions">
-            <button id="btn-export-csv" class="btn-export">📥 Xuất Excel (CSV)</button>
-            <button id="btn-theme-toggle" class="btn-theme">🌓 Giao diện</button>
+            <button id="btn-transfer-open" class="btn-header btn-transfer">🔄 Chuyển Ví</button>
+            <button id="btn-print-statement" class="btn-header btn-print">🖨️ In Báo Cáo</button>
+            <button id="btn-export-csv" class="btn-header btn-export">📥 Xuất CSV</button>
+            <button id="btn-theme-toggle" class="btn-header btn-theme">🌓 Giao diện</button>
         </div>
     </div>
 
@@ -186,7 +256,7 @@
         </div>
     </div>
 
-    <!-- DASHBOARD SỐ DƯ THEO VÍ TIỀN (MULTI-ACCOUNT) -->
+    <!-- DASHBOARD SỐ DƯ THEO VÍ TIỀN -->
     <div class="wallets-dashboard">
         <div class="card" style="border-top: 4px solid #10b981;">
             <div class="card-title">💵 Tiền mặt (Cash)</div>
@@ -270,7 +340,7 @@
                 <button type="button" class="btn-add" id="btn-add-tx">+ Thêm giao dịch</button>
             </div>
 
-            <!-- FORM GIAO DỊCH ĐỊNH KỲ (RECURRING) -->
+            <!-- FORM GIAO DỊCH ĐỊNH KỲ -->
             <div class="section" style="border: 2px solid #ddd6fe;">
                 <h2>🔄 Giao Dịch Định Kỳ Tự Động</h2>
                 <div class="form-group">
@@ -451,6 +521,15 @@
         getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(err => {
+                console.log('SW registration error: ', err);
+            });
+        });
+    }
+
     const firebaseConfig = {
         apiKey: "AIzaSyB8WvfnEI-s9hdUpMvDSulzD5_BfJtAE48",
         authDomain: "quan-li-chi-tieu-e82b1.firebaseapp.com",
@@ -496,7 +575,7 @@
 
     const categoryIcons = {
         "Ăn uống": "🍜", "Đi lại": "🛵", "Mua sắm": "🛒", "Học tập": "📚",
-        "Giải trí": "🎮", "Hóa đơn": "🧾", "Lương": "💰", "Khác": "📦"
+        "Giải trí": "🎮", "Hóa đơn": "🧾", "Lương": "💰", "Chuyển ví": "🔄", "Khác": "📦"
     };
 
     const walletLabels = {
@@ -505,7 +584,7 @@
         "ewallet": "📱 Ví điện tử"
     };
 
-    // TOAST NOTIFICATION ENGINE
+    // TOAST NOTIFICATIONS
     function showToast(message, type = "info") {
         const container = document.getElementById("toastContainer");
         const toast = document.createElement("div");
@@ -530,7 +609,6 @@
     function checkBillAndBudgetAlerts() {
         const todayMs = new Date(today + "T00:00:00").getTime();
         
-        // 1. Debt Due Date Reminders
         debts.forEach(d => {
             if (d.status !== "paid" && d.dueDate) {
                 const dueMs = new Date(d.dueDate + "T00:00:00").getTime();
@@ -546,11 +624,10 @@
             }
         });
 
-        // 2. Budget Alerts (>= 90%)
         const currentYearMonth = today.substring(0, 7);
         const thisMonthExpense = {};
         transactions.forEach(t => {
-            if (t.type === "expense" && t.date && t.date.startsWith(currentYearMonth)) {
+            if (t.type === "expense" && t.date && t.date.startsWith(currentYearMonth) && t.category !== "Chuyển ví") {
                 thisMonthExpense[t.category] = (thisMonthExpense[t.category] || 0) + Number(t.amount);
             }
         });
@@ -583,9 +660,7 @@
         }
     }
 
-    // =====================================
     // RECURRING ENGINE
-    // =====================================
     async function processRecurringTransactions() {
         if (recurringRules.length === 0) return;
 
@@ -632,16 +707,14 @@
                             recurringRuleId: rule.id
                         });
                     } catch (e) {
-                        console.error("Lỗi auto recurring:", e);
+                        console.error("Auto recurring error:", e);
                     }
                 }
             }
         }
     }
 
-    // =====================================
-    // LOAD ALL DATA FROM FIRESTORE
-    // =====================================
+    // LOAD DATA
     async function loadAllData() {
         try {
             const [txSnap, debtSnap, budgetSnap, saveSnap, recSnap] = await Promise.all([
@@ -668,7 +741,6 @@
             updateDashboard();
             updateChart();
 
-            // Run alerts after data load
             checkBillAndBudgetAlerts();
         } catch (err) {
             console.error("Firestore error:", err);
@@ -676,9 +748,7 @@
         }
     }
 
-    // =====================================
-    // TRANSACTIONS & FILTER ENGINE
-    // =====================================
+    // TRANSACTIONS
     async function addTransaction(customPayload = null) {
         let type, amount, category, wallet, date, note;
 
@@ -712,10 +782,68 @@
                 document.getElementById("amount").value = "";
                 document.getElementById("note").value = "";
             }
-            showToast(`Đã thêm giao dịch: ${formatMoney(amount)} (${category})`, "success");
+            showToast(`Đã thêm: ${formatMoney(amount)} (${category})`, "success");
             await loadAllData();
         } catch (err) {
             showToast("Lỗi thêm giao dịch: " + err.message, "danger");
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // QUICK WALLET TRANSFER
+    async function executeWalletTransfer() {
+        const fromWallet = document.getElementById("transferFrom").value;
+        const toWallet = document.getElementById("transferTo").value;
+        const amount = Number(document.getElementById("transferAmount").value);
+        const note = document.getElementById("transferNote").value.trim();
+
+        if (fromWallet === toWallet) {
+            return alert("Ví nguồn và ví đích không được trùng nhau!");
+        }
+        if (!amount || amount <= 0) {
+            return alert("Vui lòng nhập số tiền chuyển hợp lệ!");
+        }
+
+        const btn = document.getElementById("btnConfirmTransfer");
+        btn.disabled = true;
+
+        try {
+            const transferGroupId = `transfer_${Date.now()}`;
+            const noteText = note ? `Chuyển ví: ${note}` : `Chuyển từ ${walletLabels[fromWallet]} sang ${walletLabels[toWallet]}`;
+
+            // Create Outflow and Inflow pair
+            await Promise.all([
+                addDoc(collection(db, "transactions"), {
+                    type: "expense",
+                    amount,
+                    category: "Chuyển ví",
+                    wallet: fromWallet,
+                    date: today,
+                    note: `[Xuất ví] ${noteText}`,
+                    transferGroupId,
+                    createdAt: new Date().toISOString()
+                }),
+                addDoc(collection(db, "transactions"), {
+                    type: "income",
+                    amount,
+                    category: "Chuyển ví",
+                    wallet: toWallet,
+                    date: today,
+                    note: `[Nhập ví] ${noteText}`,
+                    transferGroupId,
+                    createdAt: new Date().toISOString()
+                })
+            ]);
+
+            document.getElementById("transferAmount").value = "";
+            document.getElementById("transferNote").value = "";
+            document.getElementById("transferModal").classList.remove("show");
+
+            showToast(`Chuyển ${formatMoney(amount)} thành công!`, "success");
+            await loadAllData();
+        } catch (err) {
+            showToast("Lỗi chuyển ví: " + err.message, "danger");
         } finally {
             btn.disabled = false;
         }
@@ -725,7 +853,7 @@
         if (!confirm("Bạn có chắc muốn xóa giao dịch này?")) return;
         try {
             await deleteDoc(doc(db, "transactions", id));
-            showToast("Đã xóa giao dịch thành công", "info");
+            showToast("Đã xóa giao dịch", "info");
             await loadAllData();
         } catch (err) {
             showToast("Lỗi xóa: " + err.message, "danger");
@@ -811,9 +939,7 @@
         }).join("");
     }
 
-    // =====================================
-    // RECURRING RULES HANDLERS
-    // =====================================
+    // RECURRING RULES
     async function addRecurringRule() {
         const type = document.querySelector('input[name="recType"]:checked').value;
         const amount = Number(document.getElementById("recAmount").value);
@@ -839,7 +965,7 @@
             showToast("Đã lưu quy tắc định kỳ thành công", "success");
             await loadAllData();
         } catch (e) {
-            showToast("Lỗi lưu mẫu định kỳ: " + e.message, "danger");
+            showToast("Lỗi lưu định kỳ: " + e.message, "danger");
         } finally {
             btn.disabled = false;
         }
@@ -880,9 +1006,7 @@
         `).join("");
     }
 
-    // =====================================
-    // DEBTS HANDLERS
-    // =====================================
+    // DEBTS
     async function addDebt() {
         const type = document.querySelector('input[name="debtType"]:checked').value;
         const person = document.getElementById("debtPerson").value.trim();
@@ -914,7 +1038,7 @@
             document.getElementById("debtAmount").value = "";
             document.getElementById("debtDueDate").value = "";
             document.getElementById("debtNote").value = "";
-            showToast(`Đã thêm ghi nợ cho "${person}"`, "success");
+            showToast(`Đã thêm ghi nợ: "${person}"`, "success");
             await loadAllData();
         } catch (err) {
             showToast("Lỗi thêm khoản nợ: " + err.message, "danger");
@@ -931,7 +1055,7 @@
                 remainingAmount: 0,
                 paidAt: new Date().toISOString() 
             });
-            showToast("Đã thanh toán toàn bộ khoản nợ!", "success");
+            showToast("Đã tất toán toàn bộ!", "success");
             await loadAllData();
         } catch (err) {
             showToast("Lỗi cập nhật: " + err.message, "danger");
@@ -1030,9 +1154,7 @@
         }).join("");
     }
 
-    // =====================================
-    // BUDGETS HANDLERS
-    // =====================================
+    // BUDGETS
     async function setCategoryBudget() {
         const category = document.getElementById("budgetCategory").value;
         const limit = Number(document.getElementById("budgetLimit").value);
@@ -1065,7 +1187,7 @@
             showToast("Đã xóa hạn mức", "info");
             await loadAllData();
         } catch (err) {
-            showToast("Lỗi xóa hạn mức: " + err.message, "danger");
+            showToast("Lỗi xóa: " + err.message, "danger");
         }
     }
 
@@ -1079,7 +1201,7 @@
         const currentYearMonth = today.substring(0, 7);
         const thisMonthExpense = {};
         transactions.forEach(t => {
-            if (t.type === "expense" && t.date && t.date.startsWith(currentYearMonth)) {
+            if (t.type === "expense" && t.date && t.date.startsWith(currentYearMonth) && t.category !== "Chuyển ví") {
                 thisMonthExpense[t.category] = (thisMonthExpense[t.category] || 0) + Number(t.amount);
             }
         });
@@ -1121,9 +1243,7 @@
         }).join("");
     }
 
-    // =====================================
-    // SAVINGS HANDLERS
-    // =====================================
+    // SAVINGS
     async function addSavingsTarget() {
         const name = document.getElementById("savingName").value.trim();
         const targetAmount = Number(document.getElementById("savingTarget").value);
@@ -1183,10 +1303,10 @@
         if (!confirm("Bạn có chắc muốn xóa mục tiêu tiết kiệm này?")) return;
         try {
             await deleteDoc(doc(db, "savings", id));
-            showToast("Đã xóa mục tiêu tiết kiệm", "info");
+            showToast("Đã xóa mục tiêu", "info");
             await loadAllData();
         } catch (err) {
-            showToast("Lỗi xóa mục tiêu: " + err.message, "danger");
+            showToast("Lỗi xóa: " + err.message, "danger");
         }
     }
 
@@ -1229,16 +1349,13 @@
         }).join("");
     }
 
-    // =====================================
-    // CSV / EXCEL EXPORT ENGINE
-    // =====================================
+    // CSV EXPORT
     function exportToCSV() {
         if (transactions.length === 0 && debts.length === 0) {
             return alert("Chưa có dữ liệu để xuất file!");
         }
 
         let csv = "\uFEFF";
-
         csv += "=== DANH SÁCH GIAO DỊCH THU / CHI ===\n";
         csv += "ID,Ngày,Loại,Danh mục,Ví tiền,Số tiền (VND),Ghi chú,Định kỳ\n";
         transactions.forEach(t => {
@@ -1262,39 +1379,34 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `QuanLyChiTieu_Export_${today}.csv`;
+        a.download = `BaoCao_ChiTieu_${today}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
     }
 
-    // =====================================
-    // DASHBOARD & CHARTS (WALLET BREAKDOWN)
-    // =====================================
+    // DASHBOARD & CHARTS
     function updateDashboard() {
         let totalIncome = 0;
         let totalExpense = 0;
         let totalOwedToYou = 0;
         let totalYouOwe = 0;
 
-        let walletBalances = {
-            cash: 0,
-            bank: 0,
-            ewallet: 0
-        };
+        let walletBalances = { cash: 0, bank: 0, ewallet: 0 };
 
         transactions.forEach(t => {
             const amt = Number(t.amount) || 0;
             const w = t.wallet || "cash";
 
-            if (t.type === "income") {
-                totalIncome += amt;
-                if (walletBalances[w] !== undefined) walletBalances[w] += amt;
+            // If not an internal wallet transfer, calculate real external Income/Expense
+            if (t.category !== "Chuyển ví") {
+                if (t.type === "income") totalIncome += amt;
+                if (t.type === "expense") totalExpense += amt;
             }
-            if (t.type === "expense") {
-                totalExpense += amt;
-                if (walletBalances[w] !== undefined) walletBalances[w] -= amt;
-            }
+
+            // Wallet balances calculate both transfers and regular income/expense
+            if (t.type === "income" && walletBalances[w] !== undefined) walletBalances[w] += amt;
+            if (t.type === "expense" && walletBalances[w] !== undefined) walletBalances[w] -= amt;
         });
 
         debts.forEach(d => {
@@ -1320,7 +1432,7 @@
     function updateChart() {
         const catTotals = {};
         transactions.forEach(t => {
-            if (t.type === "expense") {
+            if (t.type === "expense" && t.category !== "Chuyển ví") {
                 catTotals[t.category] = (catTotals[t.category] || 0) + Number(t.amount);
             }
         });
@@ -1350,19 +1462,31 @@
         });
     }
 
-    // =====================================
     // EVENT LISTENERS
-    // =====================================
     document.getElementById("btn-theme-toggle").addEventListener("click", toggleTheme);
     document.getElementById("btn-export-csv").addEventListener("click", exportToCSV);
+    document.getElementById("btn-print-statement").addEventListener("click", () => window.print());
 
+    // Transfer Modal Events
+    document.getElementById("btn-transfer-open").addEventListener("click", () => {
+        document.getElementById("transferModal").classList.add("show");
+    });
+    document.getElementById("btnCloseTransfer").addEventListener("click", () => {
+        document.getElementById("transferModal").classList.remove("show");
+    });
+    document.getElementById("btnCancelTransfer").addEventListener("click", () => {
+        document.getElementById("transferModal").classList.remove("show");
+    });
+    document.getElementById("btnConfirmTransfer").addEventListener("click", executeWalletTransfer);
+
+    // Form Submissions
     document.getElementById("btn-add-tx").addEventListener("click", () => addTransaction());
     document.getElementById("btn-add-rec").addEventListener("click", addRecurringRule);
     document.getElementById("btn-add-debt").addEventListener("click", addDebt);
     document.getElementById("btn-set-budget").addEventListener("click", setCategoryBudget);
     document.getElementById("btn-add-saving").addEventListener("click", addSavingsTarget);
 
-    // Quick Add Chips Handling
+    // Quick Add Chips
     document.querySelector(".chips-container").addEventListener("click", (e) => {
         const chip = e.target.closest("span[data-action='quick-chip']");
         if (!chip) return;
@@ -1375,7 +1499,7 @@
         });
     });
 
-    // Filters
+    // Search & Filter
     document.getElementById("searchKeyword").addEventListener("input", renderTransactions);
     document.getElementById("filterWallet").addEventListener("change", renderTransactions);
     document.getElementById("filterCategory").addEventListener("change", renderTransactions);
