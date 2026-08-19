@@ -143,26 +143,26 @@
         .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
         .filter-row input, .filter-row select { flex: 1 1 130px; padding: 9px 12px; font-size: 13px; min-height: 42px; }
 
-        .swipe-item-container { position: relative; overflow: hidden; border-bottom: 1px solid var(--card-border); }
+        /* CLEAN SWIPE WRAPPER (NO DOUBLE DELETE BUTTONS) */
+        .swipe-item-container { position: relative; overflow: hidden; border-bottom: 1px solid var(--card-border); border-radius: 10px; margin-bottom: 6px; background: #dc2626; }
         .swipe-item-container:last-child { border-bottom: none; }
-        .swipe-actions-right { position: absolute; top: 0; right: 0; bottom: 0; display: flex; align-items: center; z-index: 1; background: #fee2e2; }
+        .swipe-actions-right { position: absolute; top: 0; right: 0; bottom: 0; display: flex; align-items: center; z-index: 1; background: #dc2626; }
         .swipe-delete-trigger { background: #dc2626; color: white; height: 100%; padding: 0 20px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; cursor: pointer; border: none; }
 
-        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; background: var(--card-bg); position: relative; z-index: 2; transition: transform 0.2s ease; width: 100%; }
-        .transaction-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-        .icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--icon-bg); font-size: 18px; flex-shrink: 0; }
-        .transaction-info { min-width: 0; flex: 1; }
-        .transaction-info h3 { font-size: 14.5px; font-weight: 600; margin-bottom: 3px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
-        .transaction-info p { color: var(--text-sub); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .transaction-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-        .amount { font-weight: 700; font-size: 14.5px; white-space: nowrap; text-align: right; }
+        .transaction { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--card-bg); position: relative; z-index: 2; transition: transform 0.2s ease; width: 100%; border-radius: 10px; }
+        .transaction-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        .icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--icon-bg); font-size: 17px; flex-shrink: 0; }
+        .transaction-info { min-width: 0; flex: 1; padding-right: 6px; }
+        .transaction-info h3 { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; color: var(--text-main); word-break: break-word; display: flex; align-items: center; gap: 6px; }
+        .transaction-info p { color: var(--text-sub); font-size: 11.5px; word-break: break-word; }
+        .transaction-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .amount { font-weight: 700; font-size: 13.5px; white-space: nowrap; text-align: right; }
         .amount.expense { color: #dc2626; }
         .amount.income { color: #16a34a; }
         
-        .delete-btn { background: #fee2e2; color: #dc2626; padding: 7px 10px; font-size: 12px; border-radius: 7px; min-height: 34px; }
-        .pay-btn { background: #dcfce7; color: #16a34a; padding: 7px 10px; font-size: 12px; border-radius: 7px; min-height: 34px; }
-        .part-btn { background: #fef3c7; color: #b45309; padding: 7px 10px; font-size: 12px; border-radius: 7px; min-height: 34px; }
-        .deposit-btn { background: #ecfdf5; color: #059669; padding: 7px 10px; font-size: 12px; border-radius: 7px; min-height: 34px; }
+        .pay-btn { background: #dcfce7; color: #16a34a; padding: 6px 10px; font-size: 11px; border-radius: 6px; min-height: 32px; }
+        .part-btn { background: #fef3c7; color: #b45309; padding: 6px 10px; font-size: 11px; border-radius: 6px; min-height: 32px; }
+        .deposit-btn { background: #ecfdf5; color: #059669; padding: 6px 10px; font-size: 11px; border-radius: 6px; min-height: 32px; }
         .empty { text-align: center; color: var(--text-sub); padding: 30px; font-size: 13.5px; }
 
         /* PROGRESS BARS */
@@ -1117,7 +1117,6 @@
                     <div class="transaction-right">
                         ${receiptImg}
                         <div class="amount ${t.type}">${t.type === "income" ? "+" : "-"}${formatMoney(t.amount)}</div>
-                        <button type="button" class="delete-btn" data-action="delete-tx" data-id="${t.id}">Xóa</button>
                     </div>
                 </div>
             </div>`;
