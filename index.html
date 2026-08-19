@@ -1551,7 +1551,8 @@
     document.querySelector(".chips-container").addEventListener("click", (e) => {
         const chip = e.target.closest("span[data-action='quick-chip']");
         if (!chip) return;
-        addTransaction({ type: chip.dataset.type, amount: Number(chip.dataset.amt), category: chip.dataset.cat, wallet: chip.dataset.wallet, note: chip.dataset.note, author: "Sang" });
+        const currentAuthor = document.getElementById("author").value; // Lấy tên đang chọn trong form thay vì fix cứng Sang
+        addTransaction({ type: chip.dataset.type, amount: Number(chip.dataset.amt), category: chip.dataset.cat, wallet: chip.dataset.wallet, note: chip.dataset.note, author: currentAuthor });
     });
 
     document.getElementById("searchKeyword").addEventListener("input", renderTransactions);
