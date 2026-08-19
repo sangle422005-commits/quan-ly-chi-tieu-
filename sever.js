@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
 const path = require("path");
+const admin = require("firebase-admin"); // Thư viện kết nối Firebase
 
 const app = express();
 
@@ -20,59 +20,21 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // ==========================================
-// DATABASE FILES
+// FIREBASE FIRESTORE INITIALIZATION
 // ==========================================
-const dataFolder = path.join(__dirname, "data");
-const dataFile = path.join(dataFolder, "transactions.json");
-const debtsFile = path.join(dataFolder, "debts.json"); // File dữ liệu Nợ mới
-
-// Tạo thư mục data nếu chưa có
-if (!fs.existsSync(dataFolder)) {
-    fs.mkdirSync(dataFolder, { recursive: true });
-}
-
-// Tạo file JSON Giao dịch nếu chưa có
-if (!fs.existsSync(dataFile)) {
-    fs.writeFileSync(dataFile, "[]", "utf8");
-}
-
-// Tạo file JSON Nợ nếu chưa có
-if (!fs.existsSync(debtsFile)) {
-    fs.writeFileSync(debtsFile, "[]", "utf8");
-}
-
-// ==========================================
-// DATABASE FUNCTIONS (TRANSACTIONS)
-// ==========================================
-function readTransactions() {
-    try {
-        const data = fs.readFileSync(dataFile, "utf8");
-        return JSON.parse(data);
-    } catch (error) {
-        console.error("Lỗi đọc database:", error);
-        return [];
-    }
-}
-
-function saveTransactions(transactions) {
-    fs.writeFileSync(dataFile, JSON.stringify(transactions, null, 2), "utf8");
-}
-
-// ==========================================
-// DATABASE FUNCTIONS (DEBTS)
-// ==========================================
-function readDebts() {
-    try {
-        const data = fs.readFileSync(debtsFile, "utf8");
-        return JSON.parse(data);
-    } catch (error) {
-        console.error("Lỗi đọc database nợ:", error);
-        return [];
-    }
-}
-
-function saveDebts(debts) {
-    fs.writeFileSync(debtsFile, JSON.stringify(debts, null, 2), "utf8");
+let db;
+try {
+    // Đọc chìa khóa bảo mật từ Biến môi trường của Render
+    const serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
+    
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+    
+    db = admin.firestore();
+    console.log("🔥 Đã kết nối Firebase Firestore thành công!");
+} catch (error) {
+    console.error("❌ Lỗi kết nối Firestore. Vui lòng kiểm tra biến môi trường FIREBASE_CREDENTIALS.", error);
 }
 
 // ==========================================
@@ -81,8 +43,8 @@ function saveDebts(debts) {
 app.get("/api", (req, res) => {
     res.json({
         success: true,
-        message: "API quản lý chi tiêu và nợ đang hoạt động",
-        server: "Node.js + Express"
+        message: "API quản lý chi tiêu và nợ (Firestore) đang hoạt động",
+        server: "Node.js + Express + Firebase"
     });
 });
 
@@ -91,41 +53,54 @@ app.get("/api", (req, res) => {
 // ==========================================
 
 // Lấy danh sách thu/chi
-app.get("/api/transactions", (req, res) => {
-    const transactions = readTransactions();
-    res.json({ success: true, data: transactions });
+app.get("/api/transactions", async (req, res) => {
+    try {
+        const snapshot = await db.collection('transactions').get();
+        const transactions = snapshot.docs.map(doc => doc.data());
+        res.json({ success: true, data: transactions });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi lấy dữ liệu giao dịch" });
+    }
 });
 
 // Lấy thống kê
-app.get("/api/statistics", (req, res) => {
-    const transactions = readTransactions();
-    let totalIncome = 0;
-    let totalExpense = 0;
-    const expenseByCategory = {};
+app.get("/api/statistics", async (req, res) => {
+    try {
+        const snapshot = await db.collection('transactions').get();
+        const transactions = snapshot.docs.map(doc => doc.data());
+        
+        let totalIncome = 0;
+        let totalExpense = 0;
+        const expenseByCategory = {};
 
-    transactions.forEach(transaction => {
-        const amount = Number(transaction.amount);
-        if (transaction.type === "income") {
-            totalIncome += amount;
-        }
-        if (transaction.type === "expense") {
-            totalExpense += amount;
-            if (!expenseByCategory[transaction.category]) {
-                expenseByCategory[transaction.category] = 0;
+        transactions.forEach(transaction => {
+            const amount = Number(transaction.amount);
+            if (transaction.type === "income") {
+                totalIncome += amount;
             }
-            expenseByCategory[transaction.category] += amount;
-        }
-    });
+            if (transaction.type === "expense") {
+                totalExpense += amount;
+                if (!expenseByCategory[transaction.category]) {
+                    expenseByCategory[transaction.category] = 0;
+                }
+                expenseByCategory[transaction.category] += amount;
+            }
+        });
 
-    const balance = totalIncome - totalExpense;
-    res.json({
-        success: true,
-        data: { totalIncome, totalExpense, balance, expenseByCategory }
-    });
+        const balance = totalIncome - totalExpense;
+        res.json({
+            success: true,
+            data: { totalIncome, totalExpense, balance, expenseByCategory }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi tính toán thống kê" });
+    }
 });
 
 // Thêm giao dịch mới
-app.post("/api/transactions", (req, res) => {
+app.post("/api/transactions", async (req, res) => {
     const { type, amount, category, date, note } = req.body;
 
     if (!type || !amount || !category || !date) {
@@ -138,7 +113,6 @@ app.post("/api/transactions", (req, res) => {
         return res.status(400).json({ success: false, message: "Số tiền phải lớn hơn 0" });
     }
 
-    const transactions = readTransactions();
     const transaction = {
         id: Date.now().toString(),
         type,
@@ -149,37 +123,47 @@ app.post("/api/transactions", (req, res) => {
         createdAt: new Date().toISOString()
     };
 
-    transactions.push(transaction);
-    saveTransactions(transactions);
-
-    res.status(201).json({ success: true, message: "Đã thêm giao dịch", data: transaction });
+    try {
+        // Ghi vào Firestore
+        await db.collection('transactions').doc(transaction.id).set(transaction);
+        res.status(201).json({ success: true, message: "Đã thêm giao dịch", data: transaction });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi lưu giao dịch" });
+    }
 });
 
 // Xóa giao dịch
-app.delete("/api/transactions/:id", (req, res) => {
+app.delete("/api/transactions/:id", async (req, res) => {
     const id = req.params.id;
-    let transactions = readTransactions();
-    const oldLength = transactions.length;
+    try {
+        const docRef = db.collection('transactions').doc(id);
+        const doc = await docRef.get();
 
-    transactions = transactions.filter(transaction => transaction.id !== id);
+        if (!doc.exists) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy giao dịch" });
+        }
 
-    if (transactions.length === oldLength) {
-        return res.status(404).json({ success: false, message: "Không tìm thấy giao dịch" });
+        await docRef.delete();
+        res.json({ success: true, message: "Đã xóa giao dịch" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi xóa giao dịch" });
     }
-
-    saveTransactions(transactions);
-    res.json({ success: true, message: "Đã xóa giao dịch" });
 });
 
 // Lấy giao dịch theo ID
-app.get("/api/transactions/:id", (req, res) => {
-    const transactions = readTransactions();
-    const transaction = transactions.find(item => item.id === req.params.id);
-
-    if (!transaction) {
-        return res.status(404).json({ success: false, message: "Không tìm thấy giao dịch" });
+app.get("/api/transactions/:id", async (req, res) => {
+    try {
+        const doc = await db.collection('transactions').doc(req.params.id).get();
+        if (!doc.exists) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy giao dịch" });
+        }
+        res.json({ success: true, data: doc.data() });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi lấy dữ liệu giao dịch" });
     }
-    res.json({ success: true, data: transaction });
 });
 
 
@@ -188,13 +172,19 @@ app.get("/api/transactions/:id", (req, res) => {
 // ==========================================
 
 // Lấy danh sách nợ
-app.get("/api/debts", (req, res) => {
-    const debts = readDebts();
-    res.json({ success: true, data: debts });
+app.get("/api/debts", async (req, res) => {
+    try {
+        const snapshot = await db.collection('debts').get();
+        const debts = snapshot.docs.map(doc => doc.data());
+        res.json({ success: true, data: debts });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi lấy danh sách nợ" });
+    }
 });
 
 // Thêm khoản nợ mới
-app.post("/api/debts", (req, res) => {
+app.post("/api/debts", async (req, res) => {
     const { type, person, amount, date, note } = req.body;
 
     if (!type || !person || !amount || !date) {
@@ -207,54 +197,67 @@ app.post("/api/debts", (req, res) => {
         return res.status(400).json({ success: false, message: "Số tiền phải lớn hơn 0" });
     }
 
-    const debts = readDebts();
     const newDebt = {
         id: Date.now().toString(),
-        type, // 'borrow' (Đi vay) hoặc 'lend' (Cho mượn)
+        type, 
         person,
         amount: Number(amount),
         date,
         note: note || "Không có ghi chú",
-        status: "pending", // Trạng thái: pending (Chưa trả) hoặc paid (Đã trả)
+        status: "pending", 
         createdAt: new Date().toISOString()
     };
 
-    debts.push(newDebt);
-    saveDebts(debts);
-
-    res.status(201).json({ success: true, message: "Đã thêm khoản nợ", data: newDebt });
+    try {
+        await db.collection('debts').doc(newDebt.id).set(newDebt);
+        res.status(201).json({ success: true, message: "Đã thêm khoản nợ", data: newDebt });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi lưu khoản nợ" });
+    }
 });
 
-// Thanh toán nợ (Cập nhật trạng thái thành Đã trả)
-app.put("/api/debts/:id/pay", (req, res) => {
+// Thanh toán nợ (Cập nhật trạng thái)
+app.put("/api/debts/:id/pay", async (req, res) => {
     const id = req.params.id;
-    const debts = readDebts();
-    
-    const debtIndex = debts.findIndex(d => d.id === id);
-    if (debtIndex === -1) {
-        return res.status(404).json({ success: false, message: "Không tìm thấy khoản nợ" });
-    }
+    try {
+        const docRef = db.collection('debts').doc(id);
+        const doc = await docRef.get();
+        
+        if (!doc.exists) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy khoản nợ" });
+        }
 
-    debts[debtIndex].status = "paid";
-    debts[debtIndex].paidAt = new Date().toISOString();
-    
-    saveDebts(debts);
-    res.json({ success: true, message: "Đã xác nhận thanh toán nợ", data: debts[debtIndex] });
+        await docRef.update({
+            status: "paid",
+            paidAt: new Date().toISOString()
+        });
+
+        const updatedDoc = await docRef.get();
+        res.json({ success: true, message: "Đã xác nhận thanh toán nợ", data: updatedDoc.data() });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi cập nhật thanh toán" });
+    }
 });
 
 // Xóa khoản nợ
-app.delete("/api/debts/:id", (req, res) => {
-    let debts = readDebts();
-    const oldLength = debts.length;
-    
-    debts = debts.filter(debt => debt.id !== req.params.id);
-    
-    if (debts.length === oldLength) {
-        return res.status(404).json({ success: false, message: "Không tìm thấy khoản nợ" });
-    }
+app.delete("/api/debts/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+        const docRef = db.collection('debts').doc(id);
+        const doc = await docRef.get();
+        
+        if (!doc.exists) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy khoản nợ" });
+        }
 
-    saveDebts(debts);
-    res.json({ success: true, message: "Đã xóa khoản nợ" });
+        await docRef.delete();
+        res.json({ success: true, message: "Đã xóa khoản nợ" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi xóa khoản nợ" });
+    }
 });
 
 // ==========================================
