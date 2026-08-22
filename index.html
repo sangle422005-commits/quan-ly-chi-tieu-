@@ -437,6 +437,8 @@
                     <button class="desktop-tab-btn" data-tab="tab-form-budget">🎯 Ngân Sách</button>
                     <button class="desktop-tab-btn" data-tab="tab-form-saving">🌱 Tiết Kiệm</button>
                     <button class="desktop-tab-btn" data-tab="tab-form-rec">🔄 Định Kỳ</button>
+                    <button class="desktop-tab-btn" data-tab="tab-form-salary">💼 Tính Lương</button>
+                    <button class="desktop-tab-btn" data-tab="tab-view-salary">📊 Sổ Lương</button>
                 </div>
 
                 <!-- MOBILE DROPDOWN -->
@@ -448,6 +450,8 @@
                         <option value="tab-form-budget">🎯 Đặt Ngân Sách Tháng</option>
                         <option value="tab-form-saving">🌱 Tạo Mục Tiêu Tiết Kiệm</option>
                         <option value="tab-form-rec">🔄 Giao Dịch Định Kỳ Tự Động</option>
+                        <option value="tab-form-salary">💼 Tính Lương Tháng</option>
+                        <option value="tab-view-salary">📊 Lịch Sử Bảng Lương</option>
                     </select>
                 </div>
 
@@ -641,6 +645,48 @@
                 <div class="chart-container" id="chartWrapper"><canvas id="expenseChart"></canvas></div>
             </div>
         </div>
+        <!-- 6. TAB TÍNH LƯƠNG -->
+<div class="tab-content" id="tab-form-salary">
+    <h2>💼 Tính Lương Tháng</h2>
+    <div class="form-group">
+        <label for="salMonth">Kỳ lương tháng</label>
+        <input type="month" id="salMonth">
+    </div>
+    <div class="form-group">
+        <label for="salBase">Lương cơ bản / Lương thỏa thuận (₫)</label>
+        <input type="text" id="salBase" class="shorthand-input" placeholder="Ví dụ: 12m..." data-raw="">
+        <span class="shorthand-hint" id="hint-salBase">Gõ nhanh: 12m = 12.000.000</span>
+    </div>
+    <div class="form-group">
+        <label for="salWorkDays">Số ngày công thực tế / Chuẩn</label>
+        <div style="display: flex; gap: 8px;">
+            <input type="number" id="salActualDays" placeholder="Công thực tế (VD: 22)" min="0" max="31" style="flex:1;">
+            <input type="number" id="salStandardDays" placeholder="Công chuẩn (VD: 26)" min="1" max="31" value="26" style="flex:1;">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="salAllowance">Phụ cấp / Thưởng thêm (₫)</label>
+        <input type="text" id="salAllowance" class="shorthand-input" placeholder="Ví dụ: 1.5m..." data-raw="">
+        <span class="shorthand-hint" id="hint-salAllowance">Gõ nhanh: 1.5m = 1.500.000</span>
+    </div>
+    <div class="form-group">
+        <label for="salDeduction">Khấu trừ (Bảo hiểm, tạm ứng...) (₫)</label>
+        <input type="text" id="salDeduction" class="shorthand-input" placeholder="Ví dụ: 500k..." data-raw="">
+        <span class="shorthand-hint" id="hint-salDeduction">Gõ nhanh: 500k = 500.000</span>
+    </div>
+    <div class="form-group">
+        <label for="salWallet">Nhận tiền vào ví</label>
+        <select id="salWallet">
+            <option value="bank">💳 Ngân hàng (Bank)</option>
+            <option value="cash">💵 Tiền mặt (Cash)</option>
+            <option value="ewallet">📱 Ví điện tử</option>
+        </select>
+    </div>
+    <button type="button" class="btn-add" id="btn-calc-salary" style="background:#0284c7;">🧮 Tính & Cộng Lương Vào Ví</button>
+</div>
+        <div class="tab-content" id="tab-view-salary">
+    <div id="salaryList"><div class="empty">Chưa có dữ liệu bảng lương nào</div></div>
+</div>
 
         <!-- CỘT PHẢI: WORKSPACE & DANH SÁCH -->
         <div>
@@ -736,6 +782,132 @@
 
 <!-- FIREBASE & OFFLINE CLIENT SCRIPT -->
 <script type="module">
+    // --- QUẢN LÝ LƯƠNG THÁNG ---
+let salaries = JSON.parse(safeStorage.getItem("cache_salaries")) || [];
+
+// Gán tháng mặc định cho input tính lương là tháng hiện tại
+document.getElementById("salMonth").value = today.substring(0, 7);
+
+async function calculateAndAddSalary() {
+    const month = document.getElementById("salMonth").value;
+    const base = getRawAmount('salBase');
+    const actualDays = Number(document.getElementById("salActualDays").value) || 0;
+    const standardDays = Number(document.getElementById("salStandardDays").value) || 26;
+    const allowance = getRawAmount('salAllowance');
+    const deduction = getRawAmount('salDeduction');
+    const wallet = document.getElementById("salWallet").value;
+
+    if (!month || base <= 0) {
+        alert("Vui lòng nhập kỳ lương tháng và mức lương cơ bản hợp lệ!");
+        return;
+    }
+
+    // Công thức tính lương thực nhận = (Lương cơ bản / Công chuẩn) * Công thực tế + Phụ cấp - Khấu trừ
+    const grossByDays = standardDays > 0 ? (base / standardDays) * actualDays : base;
+    const netSalary = Math.round(grossByDays + allowance - deduction);
+
+    if (netSalary <= 0) {
+        alert("Số tiền lương thực nhận tính ra không hợp lệ (<= 0). Kiểm tra lại các khoản khấu trừ!");
+        return;
+    }
+
+    const salaryRecord = {
+        id: `temp_sal_${Date.now()}`,
+        month,
+        base,
+        actualDays,
+        standardDays,
+        allowance,
+        deduction,
+        netSalary,
+        wallet,
+        createdAt: new Date().toISOString()
+    };
+
+    salaries.unshift(salaryRecord);
+    
+    // Tự động tạo giao dịch Thu nhập loại "Lương" vào hệ thống ví chính để cập nhật số dư
+    const linkedTx = {
+        id: `temp_tx_sal_${Date.now()}`,
+        type: "income",
+        amount: netSalary,
+        category: "Lương",
+        wallet: wallet,
+        date: `${month}-01`, // Mặc định ghi nhận vào ngày 1 của tháng lương hoặc ngày hiện tại
+        author: "Sang",
+        note: `Lương tháng ${month} (Công: ${actualDays}/${standardDays})`,
+        createdAt: new Date().toISOString()
+    };
+    transactions.unshift(linkedTx);
+
+    syncLocalCache();
+    renderSalaries();
+    renderTransactions();
+    updateDashboard();
+
+    showToast(`Đã tính và cộng lương tháng ${month}: ${formatMoney(netSalary)}`, "success");
+
+    // Đồng bộ lên Firestore nếu online
+    if (navigator.onLine) {
+        try {
+            await addDoc(collection(db, "salaries"), salaryRecord);
+            await addDoc(collection(db, "transactions"), linkedTx);
+        } catch(e) {}
+    }
+}
+
+function renderSalaries() {
+    const list = document.getElementById("salaryList");
+    let filtered = [...salaries];
+    if (selectedGlobalMonth !== "all") {
+        filtered = filtered.filter(s => s.month === selectedGlobalMonth);
+    }
+    filtered.sort((a, b) => b.month.localeCompare(a.month));
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty">Chưa có bảng lương nào trong kỳ này</div>`;
+        return;
+    }
+
+    let htmlBuffer = "";
+    filtered.forEach(s => {
+        htmlBuffer += `
+        <div class="transaction">
+            <div class="transaction-left">
+                <div class="icon" style="background:#e0f2fe;">💼</div>
+                <div class="transaction-info">
+                    <h3>Lương tháng ${escapeHTML(s.month)} <span class="wallet-tag">${walletLabels[s.wallet] || "Ngân hàng"}</span></h3>
+                    <p>Công: ${s.actualDays}/${s.standardDays} | TC: ${formatMoney(s.allowance)} | Trừ: ${formatMoney(s.deduction)}</p>
+                </div>
+            </div>
+            <div class="transaction-right">
+                <div class="amount income">+${formatMoney(s.netSalary)}</div>
+                <button type="button" class="delete-btn" data-action="delete-salary" data-id="${s.id}">Xóa</button>
+            </div>
+        </div>`;
+    });
+    list.innerHTML = htmlBuffer;
+}
+
+async function deleteSalaryRecord(id) {
+    if (!confirm("Xóa bản ghi lương này?")) return;
+    salaries = salaries.filter(s => s.id !== id);
+    syncLocalCache();
+    renderSalaries();
+    showToast("Đã xóa bản ghi lương", "info");
+    if (!id.startsWith("temp_") && navigator.onLine) {
+        deleteDoc(doc(db, "salaries", id)).catch(() => {});
+    }
+}
+
+// Thêm hàm lưu cache phụ vào hàm syncLocalCache() sẵn có của bạn:
+// safeStorage.setItem("cache_salaries", JSON.stringify(salaries));
+
+// Gắn sự kiện click nút tính lương:
+document.getElementById("btn-calc-salary").addEventListener("click", calculateAndAddSalary);
+
+// Bổ sung lắng nghe sự kiện xóa lương trong hàm xử lý sự kiện chung:
+// if (e.target.closest("button[data-action='delete-salary']")) { deleteSalaryRecord(e.target.closest("button[data-action='delete-salary']").dataset.id); }
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
         getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc 
